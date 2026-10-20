@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+  <head>
+    <title>Schedules</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="schedules.css">
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+  </head>
+  <body>
+    <div id="mb-over" onclick="toggleMenuBar()"></div>
+    <div id="vs-over" onclick="toggleScheduleCreator()"></div>
+    <div id="sb">
+      <div id="mb-o" onclick="toggleMenuBar()"></div>
+      <div id="top" onclick="jumpToTop('body')"></div>
+    </div>
+    <div id="mb">
+      <div id="mb-bar">
+        <div id="mb-x" onclick="toggleMenuBar()"></div>
+        <div id="mb-nav">
+          <a id="mb-about" href="../about/"></a>
+          <a id="mb-home" href="../home/"></a>
+        </div>
+      </div>
+      <div id="mb-cont">
+        <div id="mb-header">Your Stuff</div>
+        <a href="/schedules/" style="color:#b2cee7;text-decoration:underline;">Schedules</a>
+        <a href="/teams/">Teams</a>
+        <a href="/meetings/">Meetings</a>
+        <div id="mb-header">Misceallaneous?</div>
+        <a>button</a>
+        <a>button</a>
+        <a>button</a>
+        <a>button</a>
+        <div id="mb-stg">
+          <div id="mb-header">IGNORE/DELETE?</div>
+          <span>HP Format <span class="tt-menu">�<span class="tt-text">change # formatting</span></span>
+            <div id="mb-nf-ex"></div>
+          </span>
+          <div id="mb-nf">
+            <button class="nf-opt" data-format="none" onclick="changeNumberFormat(this)">NONE</button>
+            <button class="nf-opt" data-format="comma" onclick="changeNumberFormat(this)">COMMA</button>
+            <button class="nf-opt" data-format="period" onclick="changeNumberFormat(this)">PERIOD</button>
+          </div>
+          <div id="mb-tgl">
+            <span>Leaks <span class="tt-menu">�<span class="tt-text">unreleased and/or STC content</span></span></span>
+            <label id="mb-tgl-lks">
+              <input type="checkbox" id="lks" style="display:none;">
+              <span id="tgl-lks"></span>
+            </label>
+          </div>
+          <div id="mb-tgl">
+            <span>Spoilers <span class="tt-menu">�<span class="tt-text">leaks + story/boss spoiler content</span></span></span>
+            <label id="mb-tgl-spl">
+              <input type="checkbox" id="spl" style="display:none;">
+              <span id="tgl-spl"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="page">
+      <div id="vs">
+        <div id="vs-bar">
+          <div id="vs-x" onclick="toggleScheduleCreator()">✖</div>
+          <div id="vs-nav">
+            <div id="vs-top" onclick="jumpToTop('vs-cont')"></div>
+            <div id="vs-btm" onclick="jumpToBottom('vs-cont')"></div>
+          </div>
+        </div>
+        <div id="vs-cont">
+          import schedule (placeholder)
+        </div>
+      </div>
+      <div id="header">Schedules</div>
+      <div id="v">
+        <div id="v-text" onclick="toggleScheduleCreator()">
+          <div id="v-name">Create Schedules</div>
+          <div id="v-time">ignore</div>
+          <div id="v-id">this</div>
+        </div>
+      </div>
+      <div id="header">run "saveSchedules(N)" in console and reload to test</div>
+    </div>
+    </div>
+    <script src="schedules.js"></script>
+  </body>
+</html>

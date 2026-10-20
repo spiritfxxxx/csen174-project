@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+  <head>
+    <title>Home</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="home.css">
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+  </head>
+  <body>
+    <div id="mb-over" onclick="toggleMenuBar()"></div>
+    <div id="sb">
+      <div id="mb-o" onclick="toggleMenuBar()"></div>
+      <div id="top" onclick="jumpToTop('body')"></div>
+    </div>
+    <div id="mb">
+      <div id="mb-bar">
+        <div id="mb-x" onclick="toggleMenuBar()"></div>
+        <div id="mb-nav">
+          <a id="mb-about" href="../todo/"></a>
+          <a id="mb-home" href="../home/"></a>
+        </div>
+      </div>
+      <div id="mb-cont">
+        <div id="mb-header">Your Stuff</div>
+        <a href="/schedules/">Schedules</a>
+        <a href="/teams/">Teams</a>
+        <a href="/meetings/">Meetings</a>
+        <div id="mb-header">Misceallaneous?</div>
+        <a>button</a>
+        <a>button</a>
+        <a>button</a>
+        <a>button</a>
+        <div id="mb-stg">
+          <div id="mb-header">IGNORE/DELETE?</div>
+          <span>HP Format <span class="tt-menu">�<span class="tt-text">change # formatting</span></span>
+            <div id="mb-nf-ex"></div>
+          </span>
+          <div id="mb-nf">
+            <button class="nf-opt" data-format="none" onclick="changeNumberFormat(this)">NONE</button>
+            <button class="nf-opt" data-format="comma" onclick="changeNumberFormat(this)">COMMA</button>
+            <button class="nf-opt" data-format="period" onclick="changeNumberFormat(this)">PERIOD</button>
+          </div>
+          <div id="mb-tgl">
+            <span>Leaks <span class="tt-menu">�<span class="tt-text">unreleased and/or STC content</span></span></span>
+            <label id="mb-tgl-lks">
+              <input type="checkbox" id="lks" style="display:none;">
+              <span id="tgl-lks"></span>
+            </label>
+          </div>
+          <div id="mb-tgl">
+            <span>Spoilers <span class="tt-menu">�<span class="tt-text">leaks + story/boss spoiler content</span></span></span>
+            <label id="mb-tgl-spl">
+              <input type="checkbox" id="spl" style="display:none;">
+              <span id="tgl-spl"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="page">
+      <div id="home">
+        <span id="v-last">Last Updated</span>
+        <span id="v-site">site: v1.0.0</span>
+        <span id="v-beta-z">10/20/2026</span>
+        <span id="v-beta-h"></span>
+        <div id="buhbout">
+          <img id="buh" src="../assets/misc/time.webp">
+          <div id="msg">welcome to<br>timekeepers</div>
+          <div id="msg-sub">the schedule/meeting thing (TBD)</div>
+          <a href="../todo/" style="margin:30px;">To-do</a>
+        </div>
+        <div id="nav-zh">
+          <div class="nav-header" style="margin-top:0px;">Your Stuff</div>
+          <div id="nav-z">
+            <a href="/schedules/">Schedules</a>
+            <a href="/teams/">Teams</a>
+            <a href="/meetings">Meetings</a>
+          </div>
+          <div class="nav-header">Miscellaneous?</div>
+          <div id="nav-h">
+            <a>button</a>
+            <a>button</a>
+            <a>button</a>
+            <a>button</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="home.js"></script>
+  </body>
+</html>
