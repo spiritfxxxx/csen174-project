@@ -1,5 +1,24 @@
 /* ----------------------------------------------------------------------- MAIN PAGE ----------------------------------------------------------------------- */
 
+// generate 6 digits team ID
+function generateTeamID()
+{
+  let ID = [];
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (let i = 0; i < 6; i++)
+  {
+    let idx = Math.trunc(Math.random() * chars.length);
+    ID.push(chars[idx]);
+  }
+  return ID.join('');
+}
+
+
+
+// i think below is for your personal website :O
+
+
 let vLive = 59, vBeta = 60, vPost = 38, vWind = 47, modeNumOld = modeNum = 4;
 let menuBarIsOpen = versionSelectorIsOpen = chartIsOpen = false;
 let elementData = ["ice", "fire", "electric", "ether", "physical", "wind"];
