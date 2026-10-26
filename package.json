@@ -1,0 +1,23 @@
+{
+  "name": "csen174-project",
+  "version": "1.0.0",
+  "description": "## Features - TBD",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spiritfxxxx/csen174-project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/spiritfxxxx/csen174-project/issues"
+  },
+  "homepage": "https://github.com/spiritfxxxx/csen174-project#readme",
+  "devDependencies": {
+    "jest": "^30.5.2"
+  }
+}
