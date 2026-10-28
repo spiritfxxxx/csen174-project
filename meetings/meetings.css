@@ -1,3 +1,13 @@
+/* ------------------------------------------------------------------------ PROJECT ------------------------------------------------------------------------ */
+
+#sch-input1, #sch-input2, #sch-conv1, #sch-conv2, #sch-free {
+  width: 600px;
+  height: 150px;
+}
+#sch-conv1, #sch-conv2, #sch-free {
+  margin-top: 30px;
+}
+
 /* Z-INDEX TRACKER:
   - 999: sidebar
   - 1000: menu bar overlay

@@ -7,6 +7,7 @@
   </head>
   <body>
     <div id="mb-over" onclick="toggleMenuBar()"></div>
+    <div id="vs-over" onclick="toggleTeamImporter()"></div>
     <div id="sb">
       <div id="mb-o" onclick="toggleMenuBar()"></div>
       <div id="top" onclick="jumpToTop('body')"></div>
@@ -21,8 +22,8 @@
       </div>
       <div id="mb-cont">
         <div id="mb-header">Your Stuff</div>
-        <a href="/schedules/">Schedules</a>
-        <a href="/teams/" style="color:#b2cee7;text-decoration:underline;">Teams</a>
+        <a href="/schedules/" style="color:#b2cee7;text-decoration:underline;">Schedules</a>
+        <a href="/teams/">Teams</a>
         <a href="/meetings/">Meetings</a>
         <div id="mb-header">Misceallaneous?</div>
         <a>button</a>
@@ -57,7 +58,30 @@
       </div>
     </div>
     <div id="page">
+      <div id="vs">
+        <div id="vs-bar">
+          <div id="vs-x" onclick="toggleTeamImporter()">✖</div>
+          <div id="vs-nav">
+            <div id="vs-top" onclick="jumpToTop('vs-cont')"></div>
+            <div id="vs-btm" onclick="jumpToBottom('vs-cont')"></div>
+          </div>
+        </div>
+        <div id="vs-cont">
+          create team (placeholder)
+        </div>
+      </div>
       <div id="header">Teams</div>
+      <div id="v">
+        <div id="v-text" onclick="toggleTeamImporter()">
+          <div id="v-name">Import Team</div>
+          <div id="v-time">not done</div>
+          <div id="v-id">yet (soon™)</div>
+        </div>
+      </div>
+      <button id="team-add" onclick="createTeam()">Create a Team (placeholder)</button>
+      <button id="team-del" onclick="deleteTeam()">Delete All Teams (placeholder)</button>
+      <input id="team-input"> Find a Team ID (placeholder)</input>
+      <div id="team-list"></div>
     </div>
     </div>
     <script src="teams.js"></script>

@@ -7,7 +7,7 @@
   </head>
   <body>
     <div id="mb-over" onclick="toggleMenuBar()"></div>
-    <div id="vs-over" onclick="toggleScheduleCreator()"></div>
+    <div id="vs-over" onclick="toggleScheduleImporter()"></div>
     <div id="sb">
       <div id="mb-o" onclick="toggleMenuBar()"></div>
       <div id="top" onclick="jumpToTop('body')"></div>
@@ -60,25 +60,27 @@
     <div id="page">
       <div id="vs">
         <div id="vs-bar">
-          <div id="vs-x" onclick="toggleScheduleCreator()">✖</div>
+          <div id="vs-x" onclick="toggleScheduleImporter()">✖</div>
           <div id="vs-nav">
             <div id="vs-top" onclick="jumpToTop('vs-cont')"></div>
             <div id="vs-btm" onclick="jumpToBottom('vs-cont')"></div>
           </div>
         </div>
         <div id="vs-cont">
-          import schedule (placeholder)
+          create schedule (placeholder)
         </div>
       </div>
       <div id="header">Schedules</div>
       <div id="v">
-        <div id="v-text" onclick="toggleScheduleCreator()">
-          <div id="v-name">Create Schedules</div>
-          <div id="v-time">ignore</div>
-          <div id="v-id">this</div>
+        <div id="v-text" onclick="toggleScheduleImporter()">
+          <div id="v-name">Import Schedule</div>
+          <div id="v-time">not done</div>
+          <div id="v-id">yet (soon™)</div>
         </div>
       </div>
-      <div id="header">run "saveSchedules(N)" in console and reload to test</div>
+      <textarea id="sch-input"></textarea>
+      <button id="sch-del" onclick="deleteSchedule()">Delete All Schedules (placeholder)</button>
+      <div id="sch-list"></div>
     </div>
     </div>
     <script src="schedules.js"></script>

@@ -1,19 +1,14 @@
-a.nav-btn{
-  padding: 10px 20px;
-  border: 2px solid #b2cee7;
-  border-radius: 4px;
-  color: #ffffff;
-  font-size: 18px;
-  cursor: pointer;
-  text-decoration: none;
-  user-select: none;
-  transition: all 0.1s ease-in-out;
-}
-a.nav-btn:hover {
-  background-color: #b2cee7;
-  color: #000000;
+/* ------------------------------------------------------------------------ PROJECT ------------------------------------------------------------------------ */
+
+#sch-input {
+  margin-top: 30px;
+  width: 600px;
+  height: 300px;
 }
 
+.b-text {
+  white-space: pre-wrap;
+}
 
 /* Z-INDEX TRACKER:
   - 999: sidebar
