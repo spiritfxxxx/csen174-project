@@ -1,0 +1,12 @@
+PASS lab6/function.test.js
+  ✓ finds free time between two schedules (2 ms)
+  ✓ find free time between three schedules
+  ✓ find free time for comepltely overlapping
+  ✓ retrun error for null input (6 ms)
+  ✓ find free time for one schedules (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       5 passed, 5 total
+Snapshots:   0 total
+Time:        0.157 s, estimated 1 s
+Ran all test suites matching lab6.
