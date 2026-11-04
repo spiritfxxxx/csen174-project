@@ -94,13 +94,3 @@ function changeNumberFormat(e) {
   numFormatOptions.forEach(opt => opt.classList.toggle("selected", opt.dataset.format == currNumberFormat));
   saveState();
 }
-
-// display/hide leaks/spoilers
-leaksToggle.addEventListener("change", () => {
-  if (!leaksToggle.checked) spoilersToggle.checked = false;
-  saveState();
-});
-spoilersToggle.addEventListener("change", () => {
-  if (spoilersToggle.checked) leaksToggle.checked = true;
-  saveState();
-});
