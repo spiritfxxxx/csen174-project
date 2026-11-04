@@ -2,9 +2,9 @@
 
 let menuBarIsOpen = scheduleImporterIsOpen = false;
 let currNumberFormat, leaksToggle = document.getElementById("lks"), spoilersToggle = document.getElementById("spl");
-let scheduleInput = document.getElementById("sch-input");
+let scheduleInput = document.getElementById("vs-cont");
 
-let scheduleCnt, scheduleData = [];
+let scheduleData = [];
 
 // display main page
 function loadPage() {
@@ -19,10 +19,15 @@ window.addEventListener("DOMContentLoaded", () => { loadPage(); });
 function showSchedules() {
   let scheduleList = document.getElementById("sch-list");
   scheduleList.innerHTML = ``;
-  for (let s = 0; s < scheduleCnt; ++s) {
+
+  for (let s = 0; s < scheduleData.length; ++s) {
     let schedule = document.createElement("div");
     let scheduleName = document.createElement("div");
     let scheduleText = document.createElement("div");
+    let scheduleAction = document.createElement("div");
+    let scheduleExport = document.createElement("a");
+    let scheduleDelete = document.createElement("a");
+
     schedule.className = "b";
     scheduleName.className = "b-name";
     scheduleText.className = "b-text";
@@ -39,24 +44,32 @@ function showSchedules() {
 
     schedule.appendChild(scheduleName);
     schedule.appendChild(scheduleText);
+
+    scheduleAction.className = "b-actions";
+    scheduleExport.className = "b-exp";
+    scheduleDelete.className = "b-del";
+    scheduleExport.innerHTML = "Export";
+    scheduleDelete.innerHTML = "Delete";
+    scheduleExport.onclick = function() { exportSchedule(s); };
+    scheduleDelete.onclick = function() { deleteSchedule(s); };
+    scheduleAction.appendChild(scheduleExport);
+    scheduleAction.appendChild(scheduleDelete);
+    schedule.appendChild(scheduleAction);
+
     scheduleList.appendChild(schedule);
   }
   saveState();
 }
 
 // create schedule
-function createSchedule() {
-  if (!scheduleInput.value) return;
-  ++scheduleCnt;
-  scheduleData.push(scheduleInput.value);
+function createSchedule(s) {
+  scheduleData.push(s);
   showSchedules();
 }
-scheduleInput.addEventListener("change", () => { createSchedule(); });
 
 // delete schedule
-function deleteSchedule() {
-  scheduleCnt = 0;
-  scheduleData = [];
+function deleteSchedule(s) {
+  scheduleData.splice(s, 1);
   showSchedules();
 }
 
@@ -82,13 +95,12 @@ function importICS()
       current.setDate(current.getDate() + 1);
     }
     scheduleData.push(allSlots);
-    ++scheduleCnt;
     showSchedules();
   }
   reader.readAsText(file);
 }
 
-// convert and get all the busy time slots from ics file
+// convert and get all the busy time slots from ics file in given date range
 function icsToSchedule(ics, targetDate)
 {
   let slots = [];
@@ -108,7 +120,6 @@ function icsToSchedule(ics, targetDate)
       let nextStr = next.toString();
       let localDate = new Date(nextStr);
       let dateStr = localDate.toLocaleDateString('en-CA');
-      console.log(nextStr);
       
       if (dateStr == targetDate)
       {
@@ -155,17 +166,51 @@ function minutesToTime(minutes)
   return hour + ":" + min + " " + period;
 }
 
+// local import responsiveness
+["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
+  scheduleInput.addEventListener(eventName, preventDefaults, false);
+  document.body.addEventListener(eventName, preventDefaults, false);
+});
+function preventDefaults(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+// import schedule
+function importSchedule(s) {
+  let scheduleFile = s.dataTransfer.files;
+  if (scheduleFile.length > 0 && scheduleFile[0].type == "text/csv") {
+    let scheduleText = new FileReader();
+    scheduleText.onload = function(e) { createSchedule(e.target.result); toggleScheduleImporter(); };
+    scheduleText.onerror = function(e) { console.error("Error reading file:", e.target.error); };
+    scheduleText.readAsText(scheduleFile[0]);
+  }
+}
+scheduleInput.addEventListener("drop", importSchedule, false);
+
+// export schedule
+function exportSchedule(s) {
+  let blob = new Blob([scheduleData[s]], { type: 'text/csv;charset=utf-8;' });
+  let url = URL.createObjectURL(blob);
+  let link = document.createElement("a");
+
+  link.setAttribute("href", url);
+  link.setAttribute("download", `schedule${s + 1}-timekeepers.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 /* ----------------------------------------------------------------------- QOL & NAV ----------------------------------------------------------------------- */
 
 // load saved settings/page
 function loadSaveState() {
-  scheduleCnt = localStorage.getItem("scheduleCnt") || 0;
   scheduleData = localStorage.getItem("scheduleData") ? JSON.parse(localStorage.getItem("scheduleData")) : [];
 }
 
 // save current settings/page
 function saveState() {
-  localStorage.setItem("scheduleCnt", scheduleCnt);
   localStorage.setItem("scheduleData", JSON.stringify(scheduleData));
 }
 
@@ -186,8 +231,8 @@ document.addEventListener("keydown", (e) => {
   e.stopPropagation();
   if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key == "Escape") { e.preventDefault(); scheduleImporterIsOpen ? toggleScheduleImporter() : toggleMenuBar(); }
-  else if (e.key == " " && !menuBarIsOpen && document.activeElement != scheduleInput) { e.preventDefault(); toggleScheduleImporter(); }
-  else if (e.key == "Enter" && !menuBarIsOpen && !scheduleImporterIsOpen && document.activeElement != scheduleInput) { e.preventDefault(); jumpToTop(); }
+  else if (e.key == " " && !menuBarIsOpen) { e.preventDefault(); toggleScheduleImporter(); }
+  else if (e.key == "Enter" && !menuBarIsOpen && !scheduleImporterIsOpen) { e.preventDefault(); jumpToTop(); }
 });
 
 /* ------------------------------------------------------------------------ MENU BAR ------------------------------------------------------------------------ */
@@ -217,19 +262,6 @@ function changeNumberFormat(e) {
   numFormatOptions.forEach(opt => opt.classList.toggle("selected", opt.dataset.format == currNumberFormat));
   showEnemies();
 }
-
-// display/hide leaks/spoilers
-leaksToggle.addEventListener("change", () => {
-  if (!leaksToggle.checked) {
-    spoilersToggle.checked = false;
-    if (versionNum > vLive) versionNum = vLive;
-  }
-  showVersion();
-});
-spoilersToggle.addEventListener("change", () => {
-  if (spoilersToggle.checked) leaksToggle.checked = true;
-  showEnemies();
-});
 
 /* ------------------------------------------------------------------- SCHEDULE IMPORTER ------------------------------------------------------------------- */
 

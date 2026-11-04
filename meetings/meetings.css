@@ -40,7 +40,7 @@ body:after {
   width: 0px;
   height: 0px;
   overflow: hidden;
-  content: url(../../assets/misc/menu-hover.webp) url(../../assets/misc/home-hover.webp) url(../../assets/misc/info-hover.webp) url(../../assets/misc/top-hover.webp) url(../../assets/misc/down-hover.webp) url(../../assets/misc/calc-hover.webp) url(../../assets/misc/chart-hover.webp) url(../../assets/misc/download-hover.webp);
+  content: url(../assets/misc/menu-hover.webp) url(../assets/misc/home-hover.webp) url(../assets/misc/info-hover.webp) url(../assets/misc/top-hover.webp) url(../assets/misc/down-hover.webp) url(../assets/misc/calc-hover.webp) url(../assets/misc/chart-hover.webp) url(../assets/misc/download-hover.webp);
 }
 li {
   margin-left: 15px;
@@ -396,10 +396,10 @@ li {
   background-position: center;
 }
 #top {
-  background-image: url(../../assets/misc/top.webp);
+  background-image: url(../assets/misc/top.webp);
 }
 #top:hover {
-  background-image: url(../../assets/misc/top-hover.webp);
+  background-image: url(../assets/misc/top-hover.webp);
 }
 
 /* ------------------------------------------------------------------------ MENU BAR ------------------------------------------------------------------------ */
@@ -417,10 +417,10 @@ li {
   background-position: center;
 }
 #mb-o, #mb-x {
-  background-image: url(../../assets/misc/menu.webp);
+  background-image: url(../assets/misc/menu.webp);
 }
 #mb-o:hover, #mb-x:hover {
-  background-image: url(../../assets/misc/menu-hover.webp);
+  background-image: url(../assets/misc/menu-hover.webp);
 }
 
 /* menu bar outside overlay */
@@ -477,16 +477,16 @@ li {
   background-position: center;
 }
 #mb-home {
-  background-image: url(../../assets/misc/home.webp);
+  background-image: url(../assets/misc/home.webp);
 }
 #mb-home:hover {
-  background-image: url(../../assets/misc/home-hover.webp);
+  background-image: url(../assets/misc/home-hover.webp);
 }
 #mb-about {
-  background-image: url(../../assets/misc/info.webp);
+  background-image: url(../assets/misc/info.webp);
 }
 #mb-about:hover {
-  background-image: url(../../assets/misc/info-hover.webp);
+  background-image: url(../assets/misc/info-hover.webp);
 }
 
 /* menu bar sections */
@@ -656,16 +656,16 @@ input:checked + #tgl-lks:before, input:checked + #tgl-spl:before {
   background-position: center;
 }
 #vs-top {
-  background-image: url(../../assets/misc/top.webp);
+  background-image: url(../assets/misc/top.webp);
 }
 #vs-top:hover {
-  background-image: url(../../assets/misc/top-hover.webp);
+  background-image: url(../assets/misc/top-hover.webp);
 }
 #vs-btm {
-  background-image: url(../../assets/misc/down.webp);
+  background-image: url(../assets/misc/down.webp);
 }
 #vs-btm:hover {
-  background-image: url(../../assets/misc/down-hover.webp);
+  background-image: url(../assets/misc/down-hover.webp);
 }
 #vs-cont {
   padding: 15px;
@@ -748,10 +748,10 @@ input:checked + #tgl-lks:before, input:checked + #tgl-spl:before {
   background-position: center;
 }
 #ch-o, #ch-x2 {
-  background-image: url(../../assets/misc/chart.webp);
+  background-image: url(../assets/misc/chart.webp);
 }
 #ch-o:hover, #ch-x2:hover {
-  background-image: url(../../assets/misc/chart-hover.webp);
+  background-image: url(../assets/misc/chart-hover.webp);
 }
 #ch-x1:hover {
   color: #b2cee7;
@@ -823,10 +823,10 @@ input:checked + #tgl-lks:before, input:checked + #tgl-spl:before {
   background-position: center;
 }
 #ch-download {
-  background-image: url(../../assets/misc/download.webp);
+  background-image: url(../assets/misc/download.webp);
 }
 #ch-download:hover {
-  background-image: url(../../assets/misc/download-hover.webp);
+  background-image: url(../assets/misc/download-hover.webp);
 }
 
 /* chart gamemode/revamp dropdown */
@@ -932,7 +932,7 @@ input:checked + #tgl-lks:before, input:checked + #tgl-spl:before {
 
 @font-face {
   font-family: "Inconsolata";
-  src: url(../../assets/Inconsolata-Regular.woff2) format("woff2");
+  src: url(../assets/Inconsolata-Regular.woff2) format("woff2");
 }
 @media (max-width: 1840px) {
   #b { min-height: 126px; }

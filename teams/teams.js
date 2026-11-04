@@ -4,7 +4,7 @@ let menuBarIsOpen = teamImporterIsOpen = false;
 let currNumberFormat, leaksToggle = document.getElementById("lks"), spoilersToggle = document.getElementById("spl");
 let teamInput = document.getElementById("team-input");
 
-let teamCnt, teamData = [];
+let teamData = [];
 
 // display main page
 function loadPage() {
@@ -19,10 +19,13 @@ window.addEventListener("DOMContentLoaded", () => { loadPage(); });
 function showTeams() {
   let teamList = document.getElementById("team-list");
   teamList.innerHTML = ``;
-  for (let t = 0; t < teamCnt; ++t) {
+  for (let t = 0; t < teamData.length; ++t) {
     let team = document.createElement("div");
     let teamName = document.createElement("div");
     let teamText = document.createElement("div");
+    let teamAction = document.createElement("div");
+    let teamDelete = document.createElement("a");
+
     team.className = "b";
     teamName.className = "b-name";
     teamText.className = "b-text";
@@ -30,6 +33,14 @@ function showTeams() {
     teamText.innerHTML = teamData[t];
     team.appendChild(teamName);
     team.appendChild(teamText);
+
+    teamAction.className = "b-actions";
+    teamDelete.className = "b-del";
+    teamDelete.innerHTML = "Delete";
+    teamDelete.onclick = function() { deleteTeam(t); };
+    teamAction.appendChild(teamDelete);
+    team.appendChild(teamAction);
+
     teamList.appendChild(team);
   }
   saveState();
@@ -37,7 +48,6 @@ function showTeams() {
 
 // create team
 function createTeam() {
-  ++teamCnt;
   let id = "", char = "abcdefghijklmnopqrstuvwxyz1234567890";
   for (let i = 0; i < 6; ++i) id += char[Math.floor(Math.random() * char.length)];
   if (!teamData.includes(id)) teamData.push(id);
@@ -45,9 +55,8 @@ function createTeam() {
 }
 
 // delete team
-function deleteTeam() {
-  teamCnt = 0;
-  teamData = [];
+function deleteTeam(t) {
+  teamData.splice(t, 1);
   showTeams();
 }
 
@@ -119,19 +128,6 @@ function changeNumberFormat(e) {
   numFormatOptions.forEach(opt => opt.classList.toggle("selected", opt.dataset.format == currNumberFormat));
   showEnemies();
 }
-
-// display/hide leaks/spoilers
-leaksToggle.addEventListener("change", () => {
-  if (!leaksToggle.checked) {
-    spoilersToggle.checked = false;
-    if (versionNum > vLive) versionNum = vLive;
-  }
-  showVersion();
-});
-spoilersToggle.addEventListener("change", () => {
-  if (spoilersToggle.checked) leaksToggle.checked = true;
-  showEnemies();
-});
 
 /* ------------------------------------------------------------------- team IMPORTER ------------------------------------------------------------------- */
 
