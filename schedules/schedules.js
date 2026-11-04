@@ -27,7 +27,16 @@ function showSchedules() {
     scheduleName.className = "b-name";
     scheduleText.className = "b-text";
     scheduleName.innerHTML = `Schedule ${s + 1}`;
-    scheduleText.innerHTML = scheduleData[s];
+    
+    let text = "";
+    for (let i = 0; i < scheduleData[s].length; i++)
+    {
+      let start = minutesToTime(scheduleData[s][i][0]);
+      let end = minutesToTime(scheduleData[s][i][1]);
+      text += start + " - " + end + "\n";
+    }
+    scheduleText.innerHTML = text;
+
     schedule.appendChild(scheduleName);
     schedule.appendChild(scheduleText);
     scheduleList.appendChild(schedule);
@@ -49,6 +58,101 @@ function deleteSchedule() {
   scheduleCnt = 0;
   scheduleData = [];
   showSchedules();
+}
+
+// read ics file and date
+function importICS()
+{
+  let file = document.getElementById("ics-file").files[0];
+  let startDate = document.getElementById("ics-start").value;
+  let endDate = document.getElementById("ics-end").value;
+  let reader = new FileReader();
+  
+  reader.onload = function(e) {
+    let text = e.target.result;
+    let current = new Date(startDate);
+    let end = new Date(endDate);
+    let allSlots = [];
+
+    while (current <= end)
+    {
+      let dateStr = current.toISOString().split("T")[0];
+      let slots = icsToSchedule(text, dateStr);
+      allSlots = allSlots.concat(slots);
+      current.setDate(current.getDate() + 1);
+    }
+    scheduleData.push(allSlots);
+    ++scheduleCnt;
+    showSchedules();
+  }
+  reader.readAsText(file);
+}
+
+// convert and get all the busy time slots from ics file
+function icsToSchedule(ics, targetDate)
+{
+  let slots = [];
+  let comp = new ICAL.Component(ICAL.parse(ics));
+  let events = comp.getAllSubcomponents('vevent');
+  
+  events.forEach((vevent) => {
+    let event = new ICAL.Event(vevent);
+    let expand = new ICAL.RecurExpansion ({
+    component: vevent,
+    dtstart: event.startDate
+    });
+    
+    let next = expand.next();
+    while (next)
+    {
+      let nextStr = next.toString();
+      let localDate = new Date(nextStr);
+      let dateStr = localDate.toLocaleDateString('en-CA');
+      console.log(nextStr);
+      
+      if (dateStr == targetDate)
+      {
+        let startMin = localDate.getHours() * 60 + localDate.getMinutes();
+        let localEndDate = new Date(event.endDate.toString());
+        let endMin = localEndDate.getHours() * 60 + localEndDate.getMinutes();
+        slots.push([startMin, endMin]);
+      }
+      next = expand.next()
+      if (next && next.toString() > targetDate + "T23:59:59") break;
+    };
+  });
+  return slots
+}
+
+// convert minutes to time
+function minutesToTime(minutes)
+{
+  let hour = Math.trunc(minutes / 60);
+  let min = minutes % 60;
+  let period;
+
+  if (hour == 0)
+  {
+    hour += 12;
+    period = "AM";
+  }
+  else if (hour == 12)
+  {
+    period = "PM";
+  }
+  else if (hour > 12)
+  {
+    hour -= 12;
+    period = "PM";
+  }
+  else
+  {
+    period = "AM";
+  }
+  
+  min = min.toString().padStart(2, "0");
+  
+  return hour + ":" + min + " " + period;
 }
 
 /* ----------------------------------------------------------------------- QOL & NAV ----------------------------------------------------------------------- */

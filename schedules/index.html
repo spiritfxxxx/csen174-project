@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="schedules.css">
     <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+    <script src="https://unpkg.com/ical.js/dist/ical.es5.min.cjs"></script>
   </head>
   <body>
     <div id="mb-over" onclick="toggleMenuBar()"></div>
@@ -68,6 +69,10 @@
         </div>
         <div id="vs-cont">
           create schedule (placeholder)
+          <input type="file" id="ics-file" accept=".ics">
+          start: <input type="date" id="ics-start">
+          end: <input type="date" id="ics-end">
+          <button onclick="importICS()">Import</button>
         </div>
       </div>
       <div id="header">Schedules</div>
