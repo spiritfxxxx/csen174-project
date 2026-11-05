@@ -1,10 +1,11 @@
 /* ------------------------------------------------------------------------ PROJECT ------------------------------------------------------------------------ */
 
-#sch-input1, #sch-input2, #sch-conv1, #sch-conv2, #sch-free {
+#sch-input1, #sch-input2 {
+  width: 600px;
+}
+#sch1, #sch2, #time1, #time2, #sch-conv1, #sch-conv2, #sch-free {
   width: 600px;
   height: 150px;
-}
-#sch-conv1, #sch-conv2, #sch-free {
   margin-top: 30px;
 }
 

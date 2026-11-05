@@ -3,22 +3,54 @@
 let menuBarIsOpen = teamImporterIsOpen = false;
 let currNumberFormat, leaksToggle = document.getElementById("lks"), spoilersToggle = document.getElementById("spl");
 let scheduleInput1 = document.getElementById("sch-input1"), scheduleInput2 = document.getElementById("sch-input2");
+let schedule1 = document.getElementById("sch1"), schedule2 = document.getElementById("sch2");
+let time1 = document.getElementById("time1"), time2 = document.getElementById("time2");
 let convertedTime1 = document.getElementById("sch-conv1"), convertedTime2 = document.getElementById("sch-conv2");
 let freeTimes = document.getElementById("sch-free");
 
-let teamCnt, teamData = [];
+let teamCnt, scheduleData = [], teamData = [];
 let scheduleTimes1, scheduleTimes2, convertedTimes = convertedScheduleTimes1 = convertedScheduleTimes2 = [];
 
 // display main page
 function loadPage() {
-  //loadSaveState();
-  //showMeetings();
+  loadSaveState();
+  loadScheduleData();
 }
 window.addEventListener("DOMContentLoaded", () => { loadPage(); });
 
+/* ---------------------------------------------------------------------- SCHEDULES ---------------------------------------------------------------------- */
+
+// load schedule data
+function loadScheduleData() {
+  for (let s = 0; s < scheduleData.length; s++) {
+    let scheduleOption1 = document.createElement("option"), scheduleOption2 = document.createElement("option");
+    scheduleOption1.text = scheduleOption2.text = scheduleData[s][0];
+    scheduleOption1.value = scheduleOption2.value = s;
+    scheduleInput1.appendChild(scheduleOption1);
+    scheduleInput2.appendChild(scheduleOption2);
+  }
+  loadSchedules(scheduleInput1.value, 1);
+  loadSchedules(scheduleInput2.value, 2);
+}
+scheduleInput1.addEventListener("change", () => { loadSchedules(scheduleInput1.value, 1); });
+scheduleInput2.addEventListener("change", () => { loadSchedules(scheduleInput2.value, 2); });
+
+// load schedule
+function loadSchedules(s, n) {
+  let schedule = n == 1 ? schedule1 : schedule2;
+  let time = n == 1 ? time1 : time2;
+  let convert = n == 1 ? convertedTime1 : convertedTime2;
+  schedule.innerHTML = time.innerHTML =  convert.innerHTML = ``;
+  for (let t = 0; t < scheduleData[s][1].length; t++) {
+    let event = scheduleData[s][1][t].eventName + ", " + scheduleData[s][1][t].eventTime;
+    schedule.innerHTML += event + `\n`;
+    showTimes(convert, time, event);
+  }
+}
+
 /* ----------------------------------------------------------------------- MEETINGS ----------------------------------------------------------------------- */
 
-// display meetings
+/*// display meetings
 function showMeetings() {
   convertedTime1.innerHTML = convertedTime2.innerHTML = ``;
   freeTimes.innerHTML = ``;
@@ -39,13 +71,25 @@ function showMeetings() {
     }
   }
   showConvertTimes();
+}*/
+
+// display times
+function showTimes(c, t, e) {
+  let match = e.match(/^(?<eventName>.+?),\s*(?<startDate>\d{1,2}\/\d{1,2}\/\d{4}),\s*(?<startTime>\d{1,2}:\d{2}:\d{2}\s*(?:AM|PM)),\s*(?<endDate>\d{1,2}\/\d{1,2}\/\d{4}),\s*(?<endTime>\d{1,2}:\d{2}:\d{2}\s*(?:AM|PM))$/i);
+  if (match) {
+    let { startDate, startTime, endDate, endTime } = match.groups;
+    let time = startDate + ` --- ` + startTime.padStart(11, "0") + ` --- ` + endDate + ` --- ` + endTime.padStart(11, "0");
+    t.innerHTML += time + `\n`;
+    c.innerHTML += showConvertTimes(startTime.padStart(11, "0")) + ` ` + showConvertTimes(endTime.padStart(11, "0")) + `\n`;
+  }
 }
-scheduleInput1.addEventListener("change", () => { showMeetings(); });
-scheduleInput2.addEventListener("change", () => { showMeetings(); });
 
 // display converted times
-function showConvertTimes() {
-  convertedTimes = [];
+function showConvertTimes(t) {
+  if (t.slice(0, 2) == "12" && t.slice(9, 11) == "AM") t = "00" + t.slice(2);
+  return (t.slice(0, 2) * 3600 + t.slice(3, 5) * 60 + t.slice(6, 8) * 1) + (t.slice(9, 11) == "AM" ? 0 : 43200);
+
+  /*convertedTimes = [];
   for (let t = 0; t < scheduleTimes1.length; ++t) {
     let conv1 = [parseInt(scheduleTimes1[t].slice(7, 9) * 60) + parseInt(scheduleTimes1[t].slice(10, 12)), parseInt(scheduleTimes1[t].slice(19, 21) * 60) + parseInt(scheduleTimes1[t].slice(22, 24))];
     convertedTime1.innerHTML += conv1 + `\n`;
@@ -59,11 +103,11 @@ function showConvertTimes() {
     convertedTimes.push(conv2);
   }
   console.log(convertedTimes);
-  showFreeTimes();
+  showFreeTimes();*/
 }
 
 // sort time intervals
-function sortTimes(a, b) {
+/*function sortTimes(a, b) {
   return a[0] - b[0];
 }
 
@@ -75,55 +119,19 @@ function showFreeTimes() {
     if (convertedTimes[t][0] > endTime) freeTimes.innerHTML += [endTime, convertedTimes[t][0]] +`\n`;
     endTime = Math.max(endTime, convertedTimes[t][1]);
   }
-}
-
-/* test
-start, 08:30, end, 10:00
-start, 09:15, end, 11:30
-start, 11:30, end, 13:00
-start, 12:45, end, 14:15
-start, 15:00, end, 16:30
-
-start, 07:00, end, 08:00
-start, 10:15, end, 11:00
-start, 14:00, end, 15:30
-start, 16:15, end, 17:00
-start, 17:30, end, 19:00
-
-start, 06:17, end, 07:22
-start, 07:41, end, 08:53
-start, 08:34, end, 09:12
-start, 09:58, end, 10:47
-
-start, 10:03, end, 11:48
-start, 10:29, end, 11:14
-start, 12:07, end, 13:31
-start, 14:19, end, 15:02
-
-start, 13:11, end, 13:56
-start, 14:23, end, 15:41
-start, 15:17, end, 16:08
-start, 15:52, end, 17:04
-
-start, 16:44, end, 17:39
-start, 17:39, end, 18:22
-start, 19:01, end, 20:13
-start, 20:56, end, 22:08
-*/
+}*/
 
 /* ----------------------------------------------------------------------- QOL & NAV ----------------------------------------------------------------------- */
 
-/*// load saved settings/page
+// load saved settings/page
 function loadSaveState() {
-  teamCnt = localStorage.getItem("teamCnt") || 0;
-  teamData = localStorage.getItem("teamData") ? JSON.parse(localStorage.getItem("teamData")) : [];
+  scheduleData = localStorage.getItem("scheduleData") ? JSON.parse(localStorage.getItem("scheduleData")) : [];
 }
 
 // save current settings/page
 function saveState() {
-  localStorage.setItem("teamCnt", teamCnt);
-  localStorage.setItem("teamData", JSON.stringify(teamData));
-}*/
+  localStorage.setItem("scheduleData", JSON.stringify(scheduleData));
+}
 
 // go to top
 function jumpToTop(e) {
@@ -174,19 +182,6 @@ function changeNumberFormat(e) {
   numFormatOptions.forEach(opt => opt.classList.toggle("selected", opt.dataset.format == currNumberFormat));
   showEnemies();
 }
-
-// display/hide leaks/spoilers
-leaksToggle.addEventListener("change", () => {
-  if (!leaksToggle.checked) {
-    spoilersToggle.checked = false;
-    if (versionNum > vLive) versionNum = vLive;
-  }
-  showVersion();
-});
-spoilersToggle.addEventListener("change", () => {
-  if (spoilersToggle.checked) leaksToggle.checked = true;
-  showEnemies();
-});
 
 /* ------------------------------------------------------------------- team IMPORTER ------------------------------------------------------------------- */
 

@@ -15,7 +15,6 @@
       <div id="mb-bar">
         <div id="mb-x" onclick="toggleMenuBar()"></div>
         <div id="mb-nav">
-          <a id="mb-about" href="../todo/"></a>
           <a id="mb-home" href="../home/"></a>
         </div>
       </div>
@@ -24,57 +23,29 @@
         <a href="../schedules/">Schedules</a>
         <a href="../teams/">Teams</a>
         <a href="../meetings/" style="color:#b2cee7;text-decoration:underline;">Meetings</a>
-        <div id="mb-header">Misceallaneous?</div>
-        <a>button</a>
-        <a>button</a>
-        <a>button</a>
-        <a>button</a>
-        <div id="mb-stg">
-          <div id="mb-header">IGNORE/DELETE?</div>
-          <span>HP Format <span class="tt-menu">�<span class="tt-text">change # formatting</span></span>
-            <div id="mb-nf-ex"></div>
-          </span>
-          <div id="mb-nf">
-            <button class="nf-opt" data-format="none" onclick="changeNumberFormat(this)">NONE</button>
-            <button class="nf-opt" data-format="comma" onclick="changeNumberFormat(this)">COMMA</button>
-            <button class="nf-opt" data-format="period" onclick="changeNumberFormat(this)">PERIOD</button>
-          </div>
-          <div id="mb-tgl">
-            <span>Leaks <span class="tt-menu">�<span class="tt-text">unreleased and/or STC content</span></span></span>
-            <label id="mb-tgl-lks">
-              <input type="checkbox" id="lks" style="display:none;">
-              <span id="tgl-lks"></span>
-            </label>
-          </div>
-          <div id="mb-tgl">
-            <span>Spoilers <span class="tt-menu">�<span class="tt-text">leaks + story/boss spoiler content</span></span></span>
-            <label id="mb-tgl-spl">
-              <input type="checkbox" id="spl" style="display:none;">
-              <span id="tgl-spl"></span>
-            </label>
-          </div>
-        </div>
       </div>
     </div>
     <div id="page">
       <div id="header">Meetings</div>
-      <textarea id="sch-input1"></textarea>Schedule Input 1
-      <textarea id="sch-input2"></textarea>Schedule Input 2
+      <div id="b">
+        <div class="b-name">Format</div>
+        <div class="b-text">event name, start date, start time, end date, end time</div>
+        <br>
+        <div class="b-name">Example</div>
+        <div class="b-text">Mandatory Advising (Terence Zhou), 4/28/2025, 3:15:00 PM, 4/28/2025, 3:30:00 PM</div>
+        <div class="b-text">Mandatory Advising (Terence Zhou), 4/30/2026, 1:00:00 PM, 4/30/2026, 1:15:00 PM</div>
+        <div class="b-text">ENGR-19 - First Exam Appointments (Terence Zhou), 4/28/2026, 1:00:00 PM, 4/28/2026, 1:15:00 PM</div>
+        <div class="b-text">Floor Meeting - 2nd Floor Camp, 9/20/2024, 8:00:00 PM, 9/20/2024, 9:00:00 PM</div>
+      </div>
+      <select id="sch-input1"></select>Schedule Picker 1
+      <select id="sch-input2"></select>Schedule Picker 2
+      <textarea id="sch1"></textarea>Schedule 1
+      <textarea id="sch2"></textarea>Schedule 2
+      <textarea id="time1"></textarea>Times 1
+      <textarea id="time2"></textarea>Times 2
       <textarea id="sch-conv1"></textarea>Times Converter 1
       <textarea id="sch-conv2"></textarea>Times Converter 2
       <textarea id="sch-free"></textarea>Free Times
-      <div id="b">
-        <div class="b-name">Format</div>
-        <div class="b-text">start, [24 hr format time 1], end, [24 hr format time 2]</div>
-        <div class="b-text">start, [24 hr format time 3], end, [24 hr format time 4]</div>
-        <div class="b-text">start, [24 hr format time 5], end, [24 hr format time 6]</div>
-        <div class="b-text">...</div>
-        <br>
-        <div class="b-text">example:</div>
-        <div class="b-text">start, 05:50, end, 07:57</div>
-        <div class="b-text">start, 22:22, end, 23:00</div>
-        <div class="b-text">start, 02:34, end, 13:44</div>
-      </div>
     </div>
     </div>
     <script src="meetings.js"></script>

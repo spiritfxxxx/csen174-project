@@ -34,14 +34,18 @@
 
 #vs-cont {
   height: 100%;
-  font-size: 36px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 
+#vs-text {
+  font-size: 36px;
+}
+
 #ch-download {
+  margin-top: 30px;
   width: 160px;
   height: 160px;
   background-size: 160px;

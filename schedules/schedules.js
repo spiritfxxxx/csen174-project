@@ -2,7 +2,7 @@
 
 let menuBarIsOpen = scheduleImporterIsOpen = false;
 let currNumberFormat, leaksToggle = document.getElementById("lks"), spoilersToggle = document.getElementById("spl");
-let scheduleInput = document.getElementById("vs-cont");
+let scheduleInput = document.getElementById("vs-cont"), scheduleName = document.getElementById("sch-name");
 
 let scheduleData = [];
 
@@ -31,8 +31,8 @@ function showSchedules() {
     schedule.className = "b";
     scheduleName.className = "b-name";
     scheduleText.className = "b-text";
-    scheduleName.innerHTML = `Schedule ${s + 1}`;
-    scheduleText.innerHTML = scheduleData[s].map(e => `${e.eventName}, ${e.eventTime}<br>`).join('');
+    scheduleName.innerHTML = scheduleData[s][0];
+    scheduleText.innerHTML = scheduleData[s][1].map(e => `${e.eventName}, ${e.eventTime}<br>`).join('');
     schedule.appendChild(scheduleName);
     schedule.appendChild(scheduleText);
 
@@ -53,8 +53,8 @@ function showSchedules() {
 }
 
 // create schedule
-function createSchedule(s) {
-  scheduleData.push(s);
+function createSchedule(n, s) {
+  scheduleData.push([n, s]);
   showSchedules();
 }
 
@@ -116,7 +116,7 @@ function importSchedule(s) {
   let scheduleFile = s.dataTransfer.files;
   if (scheduleFile.length > 0 && scheduleFile[0].type == "text/calendar") {
     let scheduleText = new FileReader();
-    scheduleText.onload = function(e) { createSchedule(convertICS(e.target.result)); toggleScheduleImporter(); };
+    scheduleText.onload = function(e) { createSchedule(scheduleName.value || "Untitled Schedule", convertICS(e.target.result)); toggleScheduleImporter(); };
     scheduleText.onerror = function(e) { console.error("Error reading file:", e.target.error); };
     scheduleText.readAsText(scheduleFile[0]);
   }
@@ -207,4 +207,5 @@ function toggleScheduleImporter() {
   let scheduleImporterOverlay = document.getElementById("vs-over");
   document.body.style.overflow = scheduleImporterIsOpen ? "hidden" : "auto";
   scheduleImporter.style.display = scheduleImporterOverlay.style.display = scheduleImporterIsOpen ? "flex" : "none";
+  scheduleName.value = "";
 }
