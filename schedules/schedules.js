@@ -32,16 +32,7 @@ function showSchedules() {
     scheduleName.className = "b-name";
     scheduleText.className = "b-text";
     scheduleName.innerHTML = `Schedule ${s + 1}`;
-    
-    let text = "";
-    for (let i = 0; i < scheduleData[s].length; i++)
-    {
-      let start = minutesToTime(scheduleData[s][i][0]);
-      let end = minutesToTime(scheduleData[s][i][1]);
-      text += start + " - " + end + "\n";
-    }
-    scheduleText.innerHTML = text;
-
+    scheduleText.innerHTML = scheduleData[s].map(e => `${e.eventName}, ${e.eventTime}<br>`).join('');
     schedule.appendChild(scheduleName);
     schedule.appendChild(scheduleText);
 
@@ -73,97 +64,41 @@ function deleteSchedule(s) {
   showSchedules();
 }
 
-// read ics file and date
-function importICS()
-{
-  let file = document.getElementById("ics-file").files[0];
-  let startDate = document.getElementById("ics-start").value;
-  let endDate = document.getElementById("ics-end").value;
-  let reader = new FileReader();
-  
-  reader.onload = function(e) {
-    let text = e.target.result;
-    let current = new Date(startDate);
-    let end = new Date(endDate);
-    let allSlots = [];
+// convert ics to schedule
+function convertICS(t) {
+  let lines = t.replace(/\r?\n[ \t]/g, '').split(/\r?\n/);
+  let scheduleEvents = [];
+  let currentEvent = null;
 
-    while (current <= end)
-    {
-      let dateStr = current.toISOString().split("T")[0];
-      let slots = icsToSchedule(text, dateStr);
-      allSlots = allSlots.concat(slots);
-      current.setDate(current.getDate() + 1);
-    }
-    scheduleData.push(allSlots);
-    showSchedules();
-  }
-  reader.readAsText(file);
-}
-
-// convert and get all the busy time slots from ics file in given date range
-function icsToSchedule(ics, targetDate)
-{
-  let slots = [];
-  let comp = new ICAL.Component(ICAL.parse(ics));
-  let events = comp.getAllSubcomponents('vevent');
-  
-  events.forEach((vevent) => {
-    let event = new ICAL.Event(vevent);
-    let expand = new ICAL.RecurExpansion ({
-    component: vevent,
-    dtstart: event.startDate
-    });
-    
-    let next = expand.next();
-    while (next)
-    {
-      let nextStr = next.toString();
-      let localDate = new Date(nextStr);
-      let dateStr = localDate.toLocaleDateString('en-CA');
-      
-      if (dateStr == targetDate)
-      {
-        let startMin = localDate.getHours() * 60 + localDate.getMinutes();
-        let localEndDate = new Date(event.endDate.toString());
-        let endMin = localEndDate.getHours() * 60 + localEndDate.getMinutes();
-        slots.push([startMin, endMin]);
+  // build schedule data
+  for (let line of lines) {
+    if (line == "BEGIN:VEVENT") currentEvent = {};
+    else if (line == "END:VEVENT") {
+      if (currentEvent) {
+        let startTime = formatICS(currentEvent.dtstart);
+        let endTime = formatICS(currentEvent.dtend);
+        scheduleEvents.push({
+          eventName: (currentEvent.summary || "").replace(/\\,/g, ' - ').replace(/\\;/g, ';').replace(/\\n/g, ' ').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
+          eventTime: `${startTime}, ${endTime}`
+        });
       }
-      next = expand.next()
-      if (next && next.toString() > targetDate + "T23:59:59") break;
-    };
-  });
-  return slots
+      currentEvent = null;
+    }
+    else if (currentEvent && line.includes(":")) {
+      let index = line.indexOf(":");
+      let key = line.substring(0, index).split(";")[0].toLowerCase().trim();
+      let val = line.substring(index + 1);
+      currentEvent[key] = val;
+    }
+  }
+  return scheduleEvents;
 }
 
-// convert minutes to time
-function minutesToTime(minutes)
-{
-  let hour = Math.trunc(minutes / 60);
-  let min = minutes % 60;
-  let period;
-
-  if (hour == 0)
-  {
-    hour += 12;
-    period = "AM";
-  }
-  else if (hour == 12)
-  {
-    period = "PM";
-  }
-  else if (hour > 12)
-  {
-    hour -= 12;
-    period = "PM";
-  }
-  else
-  {
-    period = "AM";
-  }
-  
-  min = min.toString().padStart(2, "0");
-  
-  return hour + ":" + min + " " + period;
+// parse string (eg. 20250428T221500Z) to date
+function formatICS(icsString) {
+  if (!icsString) return "";
+  let match = icsString.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z?$/);
+  return match ? new Date(Date.UTC(match[1], match[2] - 1, match[3], match[4], match[5], match[6])).toLocaleString() : icsString;
 }
 
 // local import responsiveness
@@ -179,23 +114,23 @@ function preventDefaults(e) {
 // import schedule
 function importSchedule(s) {
   let scheduleFile = s.dataTransfer.files;
-  if (scheduleFile.length > 0 && scheduleFile[0].type == "text/csv") {
+  if (scheduleFile.length > 0 && scheduleFile[0].type == "text/calendar") {
     let scheduleText = new FileReader();
-    scheduleText.onload = function(e) { createSchedule(e.target.result); toggleScheduleImporter(); };
+    scheduleText.onload = function(e) { createSchedule(convertICS(e.target.result)); toggleScheduleImporter(); };
     scheduleText.onerror = function(e) { console.error("Error reading file:", e.target.error); };
     scheduleText.readAsText(scheduleFile[0]);
   }
 }
 scheduleInput.addEventListener("drop", importSchedule, false);
 
-// export schedule
+// export schedule - CURRENTLY BROKEN, WILL FIX LATER
 function exportSchedule(s) {
-  let blob = new Blob([scheduleData[s]], { type: 'text/csv;charset=utf-8;' });
+  let blob = new Blob([scheduleData[s]], { type: 'text/calendar;charset=utf-8;' });
   let url = URL.createObjectURL(blob);
   let link = document.createElement("a");
 
   link.setAttribute("href", url);
-  link.setAttribute("download", `schedule${s + 1}-timekeepers.csv`);
+  link.setAttribute("download", `schedule${s + 1}-timekeepers.ics`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
