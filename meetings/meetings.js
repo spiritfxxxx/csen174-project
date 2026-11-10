@@ -10,6 +10,7 @@ let freeTimes = document.getElementById("sch-free");
 
 let teamCnt, scheduleData = [], teamData = [];
 let scheduleTimes1, scheduleTimes2, convertedTimes = convertedScheduleTimes1 = convertedScheduleTimes2 = [];
+let meetingData = [];
 
 // display main page
 function loadPage() {
@@ -121,16 +122,48 @@ function showFreeTimes() {
   }
 }*/
 
+// user create meeting request
+function createMeetingRequest (teamID, timeSlot, title)
+{
+  let meeting = {
+    id: Date.now(),
+    teamID: teamID,
+    timeSlot: timeSlot,
+    title: title,
+    status: "pending",
+  }
+  meetingData.push(meeting);
+  saveState();
+}
+
+// team member accept meeting request
+function acceptMeeting(meetingID)
+{
+  let meeting = meetingData.find(m => m.id == meetingID);
+  if (meeting) meeting.status = "accepted";
+  saveState();
+}
+
+// team member decline meeting request
+function declineMeeting(meetingID)
+{
+  let meeting = meetingData.find(m => m.id == meetingID);
+  if (meeting) meeting.status = "declined";
+  saveState();
+}
+
 /* ----------------------------------------------------------------------- QOL & NAV ----------------------------------------------------------------------- */
 
 // load saved settings/page
 function loadSaveState() {
   scheduleData = localStorage.getItem("scheduleData") ? JSON.parse(localStorage.getItem("scheduleData")) : [];
+  meetingData = localStorage.getItem("meetingData") ? JSON.parse(localStorage.getItem("meetingData")) : [];
 }
 
 // save current settings/page
 function saveState() {
   localStorage.setItem("scheduleData", JSON.stringify(scheduleData));
+  localStorage.setItem("meetingData", JSON.stringify(meetingData));
 }
 
 // go to top
