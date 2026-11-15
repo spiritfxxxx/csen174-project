@@ -28,23 +28,23 @@ function showSchedules() {
   for (let s = 0; s < scheduleData.length; ++s) {
     let schedule = document.createElement("div");
     let scheduleName = document.createElement("div");
-    let scheduleText = document.createElement("div");
+    let icsText = document.createElement("div");
     let scheduleAction = document.createElement("div");
     let scheduleExport = document.createElement("a");
     let scheduleDelete = document.createElement("a");
 
     schedule.className = "b1";
     scheduleName.className = "b-name";
-    scheduleText.className = "b-text";
+    icsText.className = "b-text";
     scheduleName.textContent = scheduleData[s][0];
     for (let line of createScheduleLine(scheduleData[s][1])) {
       let scheduleLine = document.createElement("div");
       if (line.days) scheduleLine.append(line.name, " · ", formatScheduleLine(line.days, dayColor), " · ", formatScheduleLine(line.time, timeColor));
       else scheduleLine.append(line.name);
-      scheduleText.appendChild(scheduleLine);
+      icsText.appendChild(scheduleLine);
     }
     schedule.appendChild(scheduleName);
-    schedule.appendChild(scheduleText);
+    schedule.appendChild(icsText);
 
     scheduleAction.className = "b-actions";
     scheduleExport.className = "b-exp";
@@ -76,17 +76,22 @@ function deleteSchedule(s) {
 
 /* ----------------------------------------------------------------------- */
 
-// build schedule event, duplicate events (same time, different day) grouped together
-function createScheduleLine(events) {
-  if (!events.length) return ["No events this week"];
-
+// group duplicate events (same name, time and length, different day)
+function groupScheduleEvents(events) {
   let groups = new Map();
-  for (let e of events) {
+  for (let e of [...events].sort((a, b) => a.start - b.start)) {
     let key = `${e.name}|${e.start % dayMins}|${e.end - e.start}`;
     if (!groups.has(key)) groups.set(key, {e, days: []});
-    groups.get(key).days.push(dayNames[Math.floor(e.start / dayMins)]);
+    let day = Math.floor(e.start / dayMins);
+    if (!groups.get(key).days.includes(day)) groups.get(key).days.push(day);
   }
-  return [...groups.values()].map(({e, days}) => ({name: e.name, days: days.join(", "), time: `${formatTime(e.start)} – ${formatTime(e.end)}`}));
+  return [...groups.values()];
+}
+
+// build schedule event, duplicate events (same time, different day) grouped together
+function createScheduleLine(events) {
+  if (!events.length) return [{name: "No events this week"}];
+  return groupScheduleEvents(events).map(({e, days}) => ({name: e.name, days: days.map(d => dayNames[d]).join(", "), time: `${formatTime(e.start)} – ${formatTime(e.end)}`}));
 }
 
 // color dates/times in schedule line
@@ -98,6 +103,28 @@ function formatScheduleLine(text, color) {
 }
 
 /* ----------------------------------------------------------------------- */
+
+// local import responsiveness
+["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
+  scheduleInput.addEventListener(eventName, preventDefaults, false);
+  document.body.addEventListener(eventName, preventDefaults, false);
+});
+function preventDefaults(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+// import ics
+function importICS(s) {
+  let icsFile = s.dataTransfer.files;
+  if (icsFile.length > 0 && icsFile[0].type == "text/calendar") {
+    let icsText = new FileReader();
+    icsText.onload = function(e) { createSchedule(scheduleName.value || "Untitled Schedule", convertICS(e.target.result)); toggleScheduleImporter(); };
+    icsText.onerror = function(e) { console.error("Error reading file:", e.target.error); };
+    icsText.readAsText(icsFile[0]);
+  }
+}
+scheduleInput.addEventListener("drop", importICS, false);
 
 // convert ics to schedule
 function convertICS(t, forDate = new Date()) {
@@ -117,7 +144,7 @@ function convertICS(t, forDate = new Date()) {
     let length = Math.round((end - start) / 60000);
     for (let occurrence of getWeekEvents(e, start, weekStart, weekEnd)) {
       if (!e["recurrence-id"] && replaced.has(`${e.uid}|${occurrence.getTime()}`)) continue;
-      let from = minutesIntoWeek(occurrence, weekStart);
+      let from = dateToMinutes(weekStart, occurrence);
       scheduleEvents.push({name, start: from, end: from + length});
     }
   }
@@ -147,7 +174,7 @@ function parseICS(t) {
   return events;
 }
 
-// parse ics string  to date
+// parse ics string to date
 // example: 20250428T221500Z --> 04/28/2025 10:15 PM
 function parseICSDate(icsString) {
   let match = (icsString || "").match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z?)$/);
@@ -161,7 +188,7 @@ function parseRRule(rule) {
   return Object.fromEntries((rule || "").split(";").filter(Boolean).map(part => part.split("=")));
 }
 
-// clean ics uneeded text
+// clean uneeded ics text
 function cleanICS(text) {
   return (text || "").replace(/\\n/gi, ' ').replace(/\\([,;\\])/g, '$1').replace(/\s+/g, ' ').trim();
 }
@@ -202,8 +229,8 @@ function getWeekEvents(ev, start, weekStart, weekEnd) {
   return results;
 }
 
-// calculate minutes from t = 0 to event
-function minutesIntoWeek(date, weekStart) {
+// date --> minutes since Monday 12:00 AM of weekStart
+function dateToMinutes(weekStart, date) {
   let midnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   let dayIndex = Math.round((midnight - weekStart) / 86400000);
   return dayIndex * dayMins + date.getHours() * 60 + date.getMinutes();
@@ -217,31 +244,12 @@ function formatTime(min) {
 
 /* ----------------------------------------------------------------------- */
 
-// local import responsiveness
-["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
-  scheduleInput.addEventListener(eventName, preventDefaults, false);
-  document.body.addEventListener(eventName, preventDefaults, false);
-});
-function preventDefaults(e) {
-  e.preventDefault();
-  e.stopPropagation();
-}
-
-// import schedule
-function importSchedule(s) {
-  let scheduleFile = s.dataTransfer.files;
-  if (scheduleFile.length > 0 && scheduleFile[0].type == "text/calendar") {
-    let scheduleText = new FileReader();
-    scheduleText.onload = function(e) { createSchedule(scheduleName.value || "Untitled Schedule", convertICS(e.target.result)); toggleScheduleImporter(); };
-    scheduleText.onerror = function(e) { console.error("Error reading file:", e.target.error); };
-    scheduleText.readAsText(scheduleFile[0]);
-  }
-}
-scheduleInput.addEventListener("drop", importSchedule, false);
-
-// export schedule - CURRENTLY BROKEN, WILL FIX LATER
+// export schedule
 function exportSchedule(s) {
-  let blob = new Blob([scheduleData[s]], {type: 'text/calendar;charset=utf-8;'});
+  let [name, events] = scheduleData[s];
+  if (!events.length) { alert("This schedule has no events to export."); return; }
+
+  let blob = new Blob([convertSchedule(name, events)], {type: 'text/calendar;charset=utf-8;'});
   let url = URL.createObjectURL(blob);
   let link = document.createElement("a");
 
@@ -250,7 +258,67 @@ function exportSchedule(s) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000); // wait a moment so the download can start
+}
+
+// convert schedule to ics
+function convertSchedule(name, events) {
+  let weekStart = getWeekStart();
+  let stamp = new Date().toISOString().replace(/[-:]|\.\d{3}/g, "");
+  let dayCodes = Object.keys(dayICS);
+  let lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Timekeepers//Schedule Export//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", `X-WR-CALNAME:${uncleanICS(name)}`];
+
+  for (let {e, days} of groupScheduleEvents(events)) {
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:${convertEvent(name)}-${convertEvent(e.name)}-${e.start}-${e.end}@timekeepers`,
+      `DTSTAMP:${stamp}`,
+      `SUMMARY:${uncleanICS(e.name)}`,
+      `DTSTART:${parseScheduleDate(minutesToDate(weekStart, e.start))}`,
+      `DTEND:${parseScheduleDate(minutesToDate(weekStart, e.end))}`,
+      `RRULE:FREQ=WEEKLY;BYDAY=${days.map(d => dayCodes[d]).join(",")}`,
+      "END:VEVENT"
+    );
+  }
+  lines.push("END:VCALENDAR");
+  return lines.map(splitICS).join("\r\n") + "\r\n";
+}
+
+// parse date to ics string
+// example: 04/28/2025 10:15 PM --> 20250428T221500
+function parseScheduleDate(date) {
+  let pad = n => String(n).padStart(2, "0");
+  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+}
+
+// add needed ics text
+function uncleanICS(text) {
+  return text.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+}
+
+/* ----------------------------------------------------------------------- */
+
+// minutes since Monday 12:00 AM of weekStart --> date
+function minutesToDate(weekStart, min) {
+  return new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + Math.floor(min / dayMins), 0, min % dayMins);
+}
+
+// convert event names to work with ics
+// example: CHEM 11 Lab --> chem-11-lab
+function convertEvent(text) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+// split long ics lines
+function splitICS(line) {
+  let encoder = new TextEncoder(), out = "", bytes = 0;
+  for (let char of line) {
+    let size = encoder.encode(char).length;
+    if (bytes + size > 75) { out += "\r\n "; bytes = 1; }
+    out += char;
+    bytes += size;
+  }
+  return out;
 }
 
 /* ----------------------------------------------------------------------- QOL & NAV ----------------------------------------------------------------------- */
@@ -286,7 +354,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key == "Escape") { e.preventDefault(); scheduleImporterIsOpen ? toggleScheduleImporter() : toggleMenuBar(); }
   else if (e.target.matches?.("input, textarea, select")) return;
   else if (e.key == " " && !menuBarIsOpen) { e.preventDefault(); toggleScheduleImporter(); }
-  else if (e.key == "Enter" && !menuBarIsOpen && !scheduleImporterIsOpen) { e.preventDefault(); jumpToTop(); }
+  else if (e.key == "Enter" && !menuBarIsOpen && !scheduleImporterIsOpen) { e.preventDefault(); jumpToTop("body"); }
 });
 
 /* ------------------------------------------------------------------------ MENU BAR ------------------------------------------------------------------------ */
