@@ -1,12 +1,16 @@
 /* ------------------------------------------------------------------------ PROJECT ------------------------------------------------------------------------ */
 
+#b1, #b2, #b3 {
+  text-align: left;
+}
+
 #sch-input1, #sch-input2 {
   width: 600px;
 }
-#sch1, #sch2, #time1, #time2, #sch-conv1, #sch-conv2, #sch-free {
+#sch-free {
   width: 600px;
-  height: 150px;
-  margin-top: 30px;
+  height: 300px;
+  margin-top: 15px;
 }
 
 /* Z-INDEX TRACKER:
@@ -183,20 +187,15 @@ li {
 /* buff display */
 #b {
   margin: 15px;
-  padding: 15px;
-  min-height: 104px;
-  border-radius: 4px;
-  background-color: #27363e;
-  text-align: left;
-  flex-direction: column;
+  gap: 15px;
+  display: flex;
 }
 #b1, #b2, #b3 {
   padding: 15px;
-  min-height: 144px;
+  min-height: 177px;
   border-radius: 4px;
   background-color: #27363e;
-  text-align: left;
-  flex-direction: column;
+  flex: 1;
 }
 
 /* buff text */

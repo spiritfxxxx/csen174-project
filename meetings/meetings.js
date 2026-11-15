@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------- MAIN PAGE ----------------------------------------------------------------------- */
 
-let menuBarIsOpen = teamImporterIsOpen = false;
+let menuBarIsOpen = false, teamImporterIsOpen = false;
 let currNumberFormat, leaksToggle = document.getElementById("lks"), spoilersToggle = document.getElementById("spl");
 let scheduleInput1 = document.getElementById("sch-input1"), scheduleInput2 = document.getElementById("sch-input2");
 let schedule1 = document.getElementById("sch1"), schedule2 = document.getElementById("sch2");
@@ -9,7 +9,6 @@ let convertedTime1 = document.getElementById("sch-conv1"), convertedTime2 = docu
 let freeTimes = document.getElementById("sch-free");
 
 let teamCnt, scheduleData = [], teamData = [];
-let scheduleTimes1, scheduleTimes2, convertedTimes = convertedScheduleTimes1 = convertedScheduleTimes2 = [];
 let meetingData = [];
 
 // display main page
@@ -20,6 +19,14 @@ function loadPage() {
 window.addEventListener("DOMContentLoaded", () => { loadPage(); });
 
 /* ---------------------------------------------------------------------- SCHEDULES ---------------------------------------------------------------------- */
+
+let dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+let dayMins = 24 * 60;
+let meetingDays = [0, 1, 2, 3, 4, 5, 6];
+let meetingEarliest = 8 * 60;                           // earliest a meeting can start (8:00 AM)
+let meetingLatest = 21 * 60;                            // latest a meeting can end (9:00 PM)
+let meetingMinLength = 30;                              // minimum meeting duration (in minutes)
+let dayColor = "#b2cee7", timeColor = "#8384c3";
 
 // load schedule data
 function loadScheduleData() {
@@ -38,91 +45,118 @@ scheduleInput2.addEventListener("change", () => { loadSchedules(scheduleInput2.v
 
 // load schedule
 function loadSchedules(s, n) {
-  let schedule = n == 1 ? schedule1 : schedule2;
-  let time = n == 1 ? time1 : time2;
-  let convert = n == 1 ? convertedTime1 : convertedTime2;
-  schedule.innerHTML = time.innerHTML =  convert.innerHTML = ``;
-  for (let t = 0; t < scheduleData[s][1].length; t++) {
-    let event = scheduleData[s][1][t].eventName + ", " + scheduleData[s][1][t].eventTime;
-    schedule.innerHTML += event + `\n`;
-    showTimes(convert, time, event);
+  let schedule = document.getElementById(`b${n}`);
+  let scheduleName = document.createElement("div");
+  let scheduleText = document.createElement("div");
+  schedule.innerHTML = ``;
+
+  scheduleName.className = "b-name";
+  scheduleText.className = "b-text";
+  scheduleName.textContent = scheduleData[s][0];
+  for (let line of createScheduleLine(scheduleData[s][1])) {
+    let scheduleLine = document.createElement("div");
+    if (line.days) scheduleLine.append(line.name, " · ", formatScheduleLine(line.days, dayColor), " · ", formatScheduleLine(line.time, timeColor));
+    else scheduleLine.append(line.name);
+    scheduleText.appendChild(scheduleLine);
   }
+  schedule.appendChild(scheduleName);
+  schedule.appendChild(scheduleText);
+  showFreeTime();
+  saveState();
+}
+
+/* ----------------------------------------------------------------------- */
+
+// build schedule event, duplicate events (same time, different day) grouped together
+function createScheduleLine(events) {
+  if (!events.length) return ["No events this week"];
+
+  let groups = new Map();
+  for (let e of events) {
+    let key = `${e.name}|${e.start % dayMins}|${e.end - e.start}`;
+    if (!groups.has(key)) groups.set(key, {e, days: []});
+    groups.get(key).days.push(dayNames[Math.floor(e.start / dayMins)]);
+  }
+  return [...groups.values()].map(({e, days}) => ({name: e.name, days: days.join(", "), time: `${convertTime(e.start)} - ${convertTime(e.end)}`}));
+}
+
+// color dates/times in schedule line
+function formatScheduleLine(text, color) {
+  let span = document.createElement("span");
+  span.textContent = text;
+  span.style.color = color;
+  return span;
+}
+
+/* --------------------------------------------------------------------- FREE TIME --------------------------------------------------------------------- */
+
+// merge time ranges that touch/overlap
+// example: [[10, 20], [15, 30], [40, 50]] --> [[10, 30], [40, 50]]
+function mergeTimes(intervals) {
+  let sorted = intervals.map(i => [i[0], i[1]]).sort((a, b) => a[0] - b[0]);
+  let merged = [];
+  for (let [start, end] of sorted) {
+    let last = merged[merged.length - 1];
+    if (last && start <= last[1]) last[1] = Math.max(last[1], end);
+    else merged.push([start, end]);
+  }
+  return merged;
+}
+
+// calculate when everyone in team is free
+function findFreeTimes(evList) {
+  let busy = mergeTimes(evList.flat().map(e => [e.start, e.end]));
+  let free = [];
+
+  for (let day of meetingDays) {
+    let currTime = day * dayMins + meetingEarliest;
+    let limit = day * dayMins + meetingLatest;
+    for (let [start, end] of busy) {
+      if (end <= currTime) continue;
+      if (start >= limit) break;
+      if (start - currTime >= meetingMinLength) free.push([currTime, start]);
+      currTime = Math.max(currTime, end);
+    }
+    if (limit - currTime >= meetingMinLength) free.push([currTime, limit]);
+  }
+  return free;
+}
+
+// display free time
+function showFreeTime() {
+  let selected = [scheduleInput1.value, scheduleInput2.value].map(s => scheduleData[s]).filter(Boolean);
+  if (!selected.length) {
+    freeTimes.textContent = "No schedules yet. Import one first.";
+    return;
+  }
+
+  let free = findFreeTimes(selected.map(s => s[1]));
+  freeTimes.textContent = free.length ? free.map(([start, end]) => `${showFreeInterval(start, end)} · ${convertDuration(end - start)}`).join("\n") : "No shared free time found.";
+}
+
+// display free time interval
+// example: Mon · 9:05 AM - 10:30 AM
+function showFreeInterval(start, end) {
+  return `${dayNames[Math.floor(start / dayMins)]} · ${convertTime(start % dayMins)} - ${convertTime(end % dayMins)}`;
+}
+
+// convert minute number to time interval
+// example: 222 --> 3 hr 42 min
+function convertDuration(min) {
+  let h = Math.floor(min / 60), m = min % 60;
+  return `${h} hr ${m} min`;
+}
+
+// convert minute number to time
+// example: 222 --> 3:42 AM
+function convertTime(min) {
+  let h = Math.floor(min / 60) % 24, m = min % 60;
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 }
 
 /* ----------------------------------------------------------------------- MEETINGS ----------------------------------------------------------------------- */
 
-/*// display meetings
-function showMeetings() {
-  convertedTime1.innerHTML = convertedTime2.innerHTML = ``;
-  freeTimes.innerHTML = ``;
-  let format = /^\s*start,\s*\d{2}:\d{2},\s*end,\s*\d{2}:\d{2}\s*$/i;
-  scheduleTimes1 = scheduleInput1.value.split(/\r?\n/);
-  scheduleTimes2 = scheduleInput2.value.split(/\r?\n/);
-  if ((scheduleTimes1.length == 1 && scheduleTimes1[0] == "") || (scheduleTimes2.length == 1 && scheduleTimes2[0] == "")) return;
-  for (let t = 0; t < scheduleTimes1.length; ++t) {
-    if (!format.test(scheduleTimes1[t])) {
-      freeTimes.innerHTML = `Please follow the format!`;
-      return;
-    }
-  }
-  for (let t = 0; t < scheduleTimes2.length; ++t) {
-    if (!format.test(scheduleTimes2[t])) {
-      freeTimes.innerHTML = `Please follow the format!`;
-      return;
-    }
-  }
-  showConvertTimes();
-}*/
-
-// display times
-function showTimes(c, t, e) {
-  let match = e.match(/^(?<eventName>.+?),\s*(?<startDate>\d{1,2}\/\d{1,2}\/\d{4}),\s*(?<startTime>\d{1,2}:\d{2}:\d{2}\s*(?:AM|PM)),\s*(?<endDate>\d{1,2}\/\d{1,2}\/\d{4}),\s*(?<endTime>\d{1,2}:\d{2}:\d{2}\s*(?:AM|PM))$/i);
-  if (match) {
-    let { startDate, startTime, endDate, endTime } = match.groups;
-    let time = startDate + ` --- ` + startTime.padStart(11, "0") + ` --- ` + endDate + ` --- ` + endTime.padStart(11, "0");
-    t.innerHTML += time + `\n`;
-    c.innerHTML += showConvertTimes(startTime.padStart(11, "0")) + ` ` + showConvertTimes(endTime.padStart(11, "0")) + `\n`;
-  }
-}
-
-// display converted times
-function showConvertTimes(t) {
-  if (t.slice(0, 2) == "12" && t.slice(9, 11) == "AM") t = "00" + t.slice(2);
-  return (t.slice(0, 2) * 3600 + t.slice(3, 5) * 60 + t.slice(6, 8) * 1) + (t.slice(9, 11) == "AM" ? 0 : 43200);
-
-  /*convertedTimes = [];
-  for (let t = 0; t < scheduleTimes1.length; ++t) {
-    let conv1 = [parseInt(scheduleTimes1[t].slice(7, 9) * 60) + parseInt(scheduleTimes1[t].slice(10, 12)), parseInt(scheduleTimes1[t].slice(19, 21) * 60) + parseInt(scheduleTimes1[t].slice(22, 24))];
-    convertedTime1.innerHTML += conv1 + `\n`;
-    convertedScheduleTimes1.push(conv1);
-    convertedTimes.push(conv1);
-  }
-  for (let t = 0; t < scheduleTimes2.length; ++t) {
-    let conv2 = [parseInt(scheduleTimes2[t].slice(7, 9) * 60) + parseInt(scheduleTimes2[t].slice(10, 12)), parseInt(scheduleTimes2[t].slice(19, 21) * 60) + parseInt(scheduleTimes2[t].slice(22, 24))];
-    convertedTime2.innerHTML += conv2 + `\n`;
-    convertedScheduleTimes2.push(conv2);
-    convertedTimes.push(conv2);
-  }
-  console.log(convertedTimes);
-  showFreeTimes();*/
-}
-
-// sort time intervals
-/*function sortTimes(a, b) {
-  return a[0] - b[0];
-}
-
-// display free time
-function showFreeTimes() {
-  convertedTimes.sort(sortTimes);
-  let endTime = convertedTimes[0][1];
-  for (let t = 1; t < convertedTimes.length; ++t) {
-    if (convertedTimes[t][0] > endTime) freeTimes.innerHTML += [endTime, convertedTimes[t][0]] +`\n`;
-    endTime = Math.max(endTime, convertedTimes[t][1]);
-  }
-}*/
-
-// user create meeting request
+// user create meeting request (timeSlot = { start, end } in minutes since Monday 00:00, eg. one entry from findFreeTimes)
 function createMeetingRequest (teamID, timeSlot, title)
 {
   let meeting = {
@@ -157,12 +191,13 @@ function declineMeeting(meetingID)
 // load saved settings/page
 function loadSaveState() {
   scheduleData = localStorage.getItem("scheduleData") ? JSON.parse(localStorage.getItem("scheduleData")) : [];
+  // older versions saved events as { eventName, eventTime }; skip those so they don't break the page
+  scheduleData = scheduleData.filter(s => s[1].every(e => typeof e.start == "number"));
   meetingData = localStorage.getItem("meetingData") ? JSON.parse(localStorage.getItem("meetingData")) : [];
 }
 
 // save current settings/page
 function saveState() {
-  localStorage.setItem("scheduleData", JSON.stringify(scheduleData));
   localStorage.setItem("meetingData", JSON.stringify(meetingData));
 }
 
@@ -181,11 +216,11 @@ function jumpToBottom(e) {
 // navigation keyboard shortcuts
 document.addEventListener("keydown", (e) => {
   e.stopPropagation();
-  let inputs = [scheduleInput1, scheduleInput2, convertedTime1, convertedTime2, freeTimes];
   if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key == "Escape") { e.preventDefault(); teamImporterIsOpen ? toggleTeamImporter() : toggleMenuBar(); }
-  else if (e.key == " " && !menuBarIsOpen && !inputs.includes(document.activeElement)) { e.preventDefault(); toggleTeamImporter(); }
-  else if (e.key == "Enter" && !menuBarIsOpen && !inputs.includes(document.activeElement)) { e.preventDefault(); jumpToTop(); }
+  else if (e.target.matches?.("input, textarea, select")) return;
+  else if (e.key == " " && !menuBarIsOpen) { e.preventDefault(); toggleTeamImporter(); }
+  else if (e.key == "Enter" && !menuBarIsOpen) { e.preventDefault(); jumpToTop("body"); }
 });
 
 /* ------------------------------------------------------------------------ MENU BAR ------------------------------------------------------------------------ */
