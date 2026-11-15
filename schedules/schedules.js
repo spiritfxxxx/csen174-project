@@ -28,23 +28,23 @@ function showSchedules() {
   for (let s = 0; s < scheduleData.length; ++s) {
     let schedule = document.createElement("div");
     let scheduleName = document.createElement("div");
-    let icsText = document.createElement("div");
+    let scheduleText = document.createElement("div");
     let scheduleAction = document.createElement("div");
     let scheduleExport = document.createElement("a");
     let scheduleDelete = document.createElement("a");
 
     schedule.className = "b1";
     scheduleName.className = "b-name";
-    icsText.className = "b-text";
+    scheduleText.className = "b-text";
     scheduleName.textContent = scheduleData[s][0];
     for (let line of createScheduleLine(scheduleData[s][1])) {
       let scheduleLine = document.createElement("div");
       if (line.days) scheduleLine.append(line.name, " · ", formatScheduleLine(line.days, dayColor), " · ", formatScheduleLine(line.time, timeColor));
       else scheduleLine.append(line.name);
-      icsText.appendChild(scheduleLine);
+      scheduleText.appendChild(scheduleLine);
     }
     schedule.appendChild(scheduleName);
-    schedule.appendChild(icsText);
+    schedule.appendChild(scheduleText);
 
     scheduleAction.className = "b-actions";
     scheduleExport.className = "b-exp";
