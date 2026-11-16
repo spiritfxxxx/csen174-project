@@ -18,7 +18,8 @@ window.addEventListener("DOMContentLoaded", () => { loadPage(); });
 let dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 let dayICS = {MO: 0, TU: 1, WE: 2, TH: 3, FR: 4, SA: 5, SU: 6};
 let dayMins = 24 * 60;
-let dayColor = "#b2cee7", timeColor = "#8384c3";
+let dayColor = "#b2cee7", timeColor = "#8384c3", confirmColor = "#ff5555";
+let confirmDelay = 5000;
 
 // display schedules
 function showSchedules() {
@@ -36,12 +37,12 @@ function showSchedules() {
     schedule.className = "b1";
     scheduleName.className = "b-name";
     scheduleText.className = "b-text";
-    scheduleName.textContent = scheduleData[s][0];
-    for (let line of createScheduleLine(scheduleData[s][1])) {
-      let scheduleLine = document.createElement("div");
-      if (line.days) scheduleLine.append(line.name, " · ", formatScheduleLine(line.days, dayColor), " · ", formatScheduleLine(line.time, timeColor));
-      else scheduleLine.append(line.name);
-      scheduleText.appendChild(scheduleLine);
+    scheduleName.innerHTML = scheduleData[s][0];
+    if (!scheduleData[s][1].length) showScheduleLines(scheduleText, "", [{name: "No Events."}]);
+    else {
+      let lines = createScheduleLine(scheduleData[s][1], scheduleData[s][2]);
+      showScheduleLines(scheduleText, "Weekly", lines.weekly);
+      showScheduleLines(scheduleText, "One-Time", lines.oneTime);
     }
     schedule.appendChild(scheduleName);
     schedule.appendChild(scheduleText);
@@ -52,7 +53,7 @@ function showSchedules() {
     scheduleExport.innerHTML = "Export";
     scheduleDelete.innerHTML = "Delete";
     scheduleExport.onclick = function() { exportSchedule(s); };
-    scheduleDelete.onclick = function() { deleteSchedule(s); };
+    scheduleDelete.onclick = function() { confirmDelete(s, scheduleDelete); };
     scheduleAction.appendChild(scheduleExport);
     scheduleAction.appendChild(scheduleDelete);
     schedule.appendChild(scheduleAction);
@@ -63,8 +64,8 @@ function showSchedules() {
 }
 
 // create schedule
-function createSchedule(n, s) {
-  scheduleData.push([n, s]);
+function createSchedule(n, s, w) {
+  scheduleData.push([n, s, w ? parseScheduleDate(w) : null]);
   showSchedules();
 }
 
@@ -74,7 +75,33 @@ function deleteSchedule(s) {
   showSchedules();
 }
 
+// confirm schedule deletion
+function confirmDelete(s, btn) {
+  if (btn.confirmTimer) {
+    if (Date.now() - btn.clickedAt < 400) return;
+    clearTimeout(btn.confirmTimer);
+    deleteSchedule(s);
+    return;
+  }
+
+  btn.clickedAt = Date.now();
+  btn.innerHTML = "Confirm";
+  btn.style.color = confirmColor;
+  btn.classList.add("confirm");
+  btn.confirmTimer = setTimeout(() => {
+    btn.confirmTimer = null;
+    btn.innerHTML = "Delete";
+    btn.style.color = "";
+    btn.classList.remove("confirm");
+  }, confirmDelay);
+}
+
 /* ----------------------------------------------------------------------- */
+
+// does event repeat, or just one-time?
+function isRepeating(e) {
+  return e.repeats;
+}
 
 // group duplicate events (same name, time and length, different day)
 function groupScheduleEvents(events) {
@@ -88,16 +115,42 @@ function groupScheduleEvents(events) {
   return [...groups.values()];
 }
 
-// build schedule event, duplicate events (same time, different day) grouped together
-function createScheduleLine(events) {
-  if (!events.length) return [{name: "No events this week"}];
-  return groupScheduleEvents(events).map(({e, days}) => ({name: e.name, days: days.map(d => dayNames[d]).join(", "), time: `${formatTime(e.start)} – ${formatTime(e.end)}`}));
+// build schedule events
+// regular events (same time, different day) grouped together
+// one-time events listed separately
+function createScheduleLine(events, week) {
+  let weekStart = week ? parseICSDate(week) : null;
+  let formatRange = e => `${formatTime(e.start)} – ${formatTime(e.end)}`;
+  let formatDate = e => weekStart ? minutesToDate(weekStart, e.start).toLocaleDateString("en-US", {weekday: "short", month: "short", day: "numeric"}) : dayNames[Math.floor(e.start / dayMins)];
+
+  return {
+    weekly: groupScheduleEvents(events.filter(isRepeating)).map(({e, days}) => ({name: e.name, days: days.map(d => dayNames[d]).join(", "), time: formatRange(e)})),
+    oneTime: events.filter(e => !isRepeating(e)).map(e => ({name: e.name, days: formatDate(e), time: formatRange(e)}))
+  };
+}
+
+// show schedule events
+function showScheduleLines(parent, label, lines) {
+  if (!lines.length) return;
+  if (label) {
+    let scheduleLabel = document.createElement("div");
+    scheduleLabel.className = "b-header";
+    scheduleLabel.innerHTML = label;
+    if (label == "One-Time") scheduleLabel.style.marginTop = "15px";
+    parent.appendChild(scheduleLabel);
+  }
+  for (let line of lines) {
+    let scheduleLine = document.createElement("div");
+    if (line.days) scheduleLine.append(line.name, " · ", formatScheduleLine(line.days, dayColor), " · ", formatScheduleLine(line.time, timeColor));
+    else scheduleLine.append(line.name);
+    parent.appendChild(scheduleLine);
+  }
 }
 
 // color dates/times in schedule line
 function formatScheduleLine(text, color) {
   let span = document.createElement("span");
-  span.textContent = text;
+  span.innerHTML = text;
   span.style.color = color;
   return span;
 }
@@ -119,7 +172,11 @@ function importICS(s) {
   let icsFile = s.dataTransfer.files;
   if (icsFile.length > 0 && icsFile[0].type == "text/calendar") {
     let icsText = new FileReader();
-    icsText.onload = function(e) { createSchedule(scheduleName.value || "Untitled Schedule", convertICS(e.target.result)); toggleScheduleImporter(); };
+    icsText.onload = function(e) {
+      let week = getWeekStart();
+      createSchedule(scheduleName.value || "Untitled Schedule", convertICS(e.target.result, week), week);
+      toggleScheduleImporter();
+    };
     icsText.onerror = function(e) { console.error("Error reading file:", e.target.error); };
     icsText.readAsText(icsFile[0]);
   }
@@ -142,10 +199,12 @@ function convertICS(t, forDate = new Date()) {
 
     let name = cleanICS(e.summary) || "Untitled Event";
     let length = Math.round((end - start) / 60000);
+    let rule = parseRRule(e.rrule);
+    let repeats = rule.FREQ == "WEEKLY" && (Number(rule.INTERVAL) || 1) == 1;
     for (let occurrence of getWeekEvents(e, start, weekStart, weekEnd)) {
       if (!e["recurrence-id"] && replaced.has(`${e.uid}|${occurrence.getTime()}`)) continue;
       let from = dateToMinutes(weekStart, occurrence);
-      scheduleEvents.push({name, start: from, end: from + length});
+      scheduleEvents.push({name, start: from, end: from + length, repeats});
     }
   }
   return scheduleEvents.sort((a, b) => a.start - b.start);
@@ -246,10 +305,10 @@ function formatTime(min) {
 
 // export schedule
 function exportSchedule(s) {
-  let [name, events] = scheduleData[s];
+  let [name, events, week] = scheduleData[s];
   if (!events.length) { alert("This schedule has no events to export."); return; }
 
-  let blob = new Blob([convertSchedule(name, events)], {type: 'text/calendar;charset=utf-8;'});
+  let blob = new Blob([convertSchedule(name, events, week)], {type: 'text/calendar;charset=utf-8;'});
   let url = URL.createObjectURL(blob);
   let link = document.createElement("a");
 
@@ -262,13 +321,14 @@ function exportSchedule(s) {
 }
 
 // convert schedule to ics
-function convertSchedule(name, events) {
+function convertSchedule(name, events, week) {
   let weekStart = getWeekStart();
+  let oneTimeStart = week ? parseICSDate(week) || weekStart : weekStart;
   let stamp = new Date().toISOString().replace(/[-:]|\.\d{3}/g, "");
   let dayCodes = Object.keys(dayICS);
   let lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Timekeepers//Schedule Export//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", `X-WR-CALNAME:${uncleanICS(name)}`];
 
-  for (let {e, days} of groupScheduleEvents(events)) {
+  for (let {e, days} of groupScheduleEvents(events.filter(isRepeating))) {
     lines.push(
       "BEGIN:VEVENT",
       `UID:${convertEvent(name)}-${convertEvent(e.name)}-${e.start}-${e.end}@timekeepers`,
@@ -277,6 +337,18 @@ function convertSchedule(name, events) {
       `DTSTART:${parseScheduleDate(minutesToDate(weekStart, e.start))}`,
       `DTEND:${parseScheduleDate(minutesToDate(weekStart, e.end))}`,
       `RRULE:FREQ=WEEKLY;BYDAY=${days.map(d => dayCodes[d]).join(",")}`,
+      "END:VEVENT"
+    );
+  }
+  for (let e of events.filter(e => !isRepeating(e))) {
+    let start = parseScheduleDate(minutesToDate(oneTimeStart, e.start));
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:${convertEvent(name)}-${convertEvent(e.name)}-${convertEvent(start)}@timekeepers`,
+      `DTSTAMP:${stamp}`,
+      `SUMMARY:${uncleanICS(e.name)}`,
+      `DTSTART:${start}`,
+      `DTEND:${parseScheduleDate(minutesToDate(oneTimeStart, e.end))}`,
       "END:VEVENT"
     );
   }

@@ -6,6 +6,10 @@
   position: relative;
 }
 
+.b-header {
+  text-align: left !important;
+}
+
 .b-text {
   white-space: pre-wrap;
 }
@@ -20,11 +24,13 @@
 }
 .b-exp, .b-del {
   padding: 10px 20px;
+  width: 50px;
   border: 2px solid #b2cee7;
   border-radius: 4px;
   color: #ffffff;
   cursor: pointer;
   font-size: 14px;
+  text-align: center;
   text-decoration: none;
   user-select: none;
   transition: all 0.1s ease-in-out;
