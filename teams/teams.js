@@ -1,29 +1,3 @@
-/* ----------------------------------------------------------------------- SET UP FIREBASE ----------------------------------------------------------------------- */
-/*
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, query, where } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDEtuQn6Cy4oxdrmeEon2BjiZWfoO0PUUA",
-  authDomain: "csen174-project.firebaseapp.com",
-  projectId: "csen174-project",
-  storageBucket: "csen174-project.firebasestorage.app",
-  messagingSenderId: "846521339233",
-  appId: "1:846521339233:web:02942d8ab9173e0a868920"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// get user name (for now)
-let userName = localStorage.getItem("userName");
-if (!userName) 
-{
-  userName = prompt("Enter your name:");
-  localStorage.setItem("userName", userName);
-}
-*/
-
 /* ----------------------------------------------------------------------- MAIN PAGE ----------------------------------------------------------------------- */
 
 let menuBarIsOpen = teamImporterIsOpen = false;
