@@ -1,3 +1,29 @@
+/* ----------------------------------------------------------------------- SET UP FIREBASE ----------------------------------------------------------------------- */
+/*
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, query, where } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDEtuQn6Cy4oxdrmeEon2BjiZWfoO0PUUA",
+  authDomain: "csen174-project.firebaseapp.com",
+  projectId: "csen174-project",
+  storageBucket: "csen174-project.firebasestorage.app",
+  messagingSenderId: "846521339233",
+  appId: "1:846521339233:web:02942d8ab9173e0a868920"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// get user name (for now)
+let userName = localStorage.getItem("userName");
+if (!userName) 
+{
+  userName = prompt("Enter your name:");
+  localStorage.setItem("userName", userName);
+}
+*/
+
 /* ----------------------------------------------------------------------- MAIN PAGE ----------------------------------------------------------------------- */
 
 let menuBarIsOpen = teamImporterIsOpen = false;
@@ -22,25 +48,45 @@ function showTeams() {
   for (let t = 0; t < teamData.length; ++t) {
     let team = document.createElement("div");
     let teamName = document.createElement("div");
+    let teamDetails = document.createElement("div");
+    teamDetails.style.display = "none";
+    teamName.onclick = function() { teamDetails.style.display = teamDetails.style.display == "none" ? "block" : "none"; };
     let teamText = document.createElement("div");
     let teamAction = document.createElement("div");
-    let teamDelete = document.createElement("a");
+    let teamInvite = document.createElement("a");
+    teamInvite.innerHTML = "Invite Member";
+    let teamSchedule = document.createElement("a");
+    teamSchedule.className = "b-del";
+    teamSchedule.innerHTML = "Schedule Meeting";
+    teamSchedule.onclick = function() {window.location.href = "../meetings/"; };
+    let teamLeave = document.createElement("a");
+    teamLeave.innerHTML = "Leave Team";
 
     team.className = "b";
     teamName.className = "b-name";
     teamText.className = "b-text";
-    teamName.innerHTML = `Team ${t + 1}`;
-    teamText.innerHTML = teamData[t];
-    team.appendChild(teamName);
-    team.appendChild(teamText);
+    teamName.innerHTML = teamData[t].name + " (ID: " + teamData[t].id + ")";
 
     teamAction.className = "b-actions";
-    teamDelete.className = "b-del";
-    teamDelete.innerHTML = "Delete";
-    teamDelete.onclick = function() { deleteTeam(t); };
-    teamAction.appendChild(teamDelete);
-    team.appendChild(teamAction);
 
+    teamInvite.className = "b-del";
+    teamInvite.onclick = function() { window.location.href = `mailto:?subject=Join my Timekeepers team&body=Hi! Join my team using this code: ${teamData[t].id}`; };
+
+    teamLeave.className = "b-del";
+    teamLeave.onclick = function() { leaveTeam(t); };
+
+    let memberInput = document.createElement("input");
+    let memberAdd = document.createElement("a");
+    memberInput.placeholder = "Add member name...";
+    memberAdd.className = "b-del";
+    memberAdd.innerHTML = "Add";
+
+    teamAction.appendChild(teamInvite);
+    teamAction.appendChild(teamSchedule);
+    teamAction.appendChild(teamLeave);
+    teamDetails.appendChild(teamAction);
+    team.appendChild(teamName);
+    team.appendChild(teamDetails);   
     teamList.appendChild(team);
   }
   saveState();
@@ -48,23 +94,38 @@ function showTeams() {
 
 // create team
 function createTeam() {
+  let name = document.getElementById("team-name")?.value.trim() || "My Team";
   let id = "", char = "abcdefghijklmnopqrstuvwxyz1234567890";
   for (let i = 0; i < 6; ++i) id += char[Math.floor(Math.random() * char.length)];
-  if (!teamData.includes(id)) teamData.push(id);
+  if (!teamData.some( t => t.id == id )) { teamData.push({ id: id, name: name, members: [] }); }
+  toggleTeamImporter();
   showTeams();
 }
 
-// delete team
-function deleteTeam(t) {
+// leave team
+function leaveTeam(t) {
   teamData.splice(t, 1);
   showTeams();
 }
 
+/*
 // find team
 function findTeam() {
   teamInput.value = teamData.includes(teamInput.value) ? "found!" : "nope! not found.";
 }
 teamInput.addEventListener("change", () => { findTeam(); });
+*/
+
+// join team
+function joinTeam() {
+  let teamInput = document.getElementById("team-input")
+  let id = teamInput.value.trim();
+  if (teamData.some( t => t.id == id)) { teamInput.value = "already in this team!"; return; }
+  teamData.push({ id: id, name: "Team",members: [] }); 
+  teamInput.value = "team joined!";
+  toggleTeamImporter();
+  showTeams();
+}
 
 /* ----------------------------------------------------------------------- QOL & NAV ----------------------------------------------------------------------- */
 
@@ -132,10 +193,20 @@ function changeNumberFormat(e) {
 /* ------------------------------------------------------------------- team IMPORTER ------------------------------------------------------------------- */
 
 // display team importer
-function toggleTeamImporter() {
+function toggleTeamImporter(mode) {
   teamImporterIsOpen = !teamImporterIsOpen;
   let teamImporter = document.getElementById("vs");
   let teamImporterOverlay = document.getElementById("vs-over");
+  let vsCont = document.getElementById("vs-cont");
   document.body.style.overflow = teamImporterIsOpen ? "hidden" : "auto";
   teamImporter.style.display = teamImporterOverlay.style.display = teamImporterIsOpen ? "flex" : "none";
+
+  if (mode == "create") {
+    vsCont.innerHTML = `<div>Team Name (optional)</div><input id="team-name" placeholder="My Team"><button onclick="createTeam()">Create</button>`;
+  } else if (mode == "join") {
+    vsCont.innerHTML = `<div>Enter Team Code</div><input id="team-input" placeholder="e.g. a43bds"><button onclick="joinTeam()">Join</button>`;
+  }
+
+  document.getElementById("team-name")?.addEventListener("keydown", (e) => { if (e.key == "Enter") createTeam(); });
+  document.getElementById("team-input")?.addEventListener("keydown", (e) => { if (e.key == "Enter") joinTeam(); });
 }

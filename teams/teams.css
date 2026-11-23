@@ -6,14 +6,26 @@
   position: relative;
 }
 
-.b-actions {
-  top: 15px;
-  right: 15px;
-  position: absolute;
-  gap: 15px;
-  display: flex;
-  flex-direction: column;
+.b-name {
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #1a2a33;
 }
+
+.b-name:horver {
+  background-color: #2a3f4a;
+}
+
+.b-actions {
+  display: flex;
+  flex-direction: row;
+  position: static;
+  margin: 10px 0px;
+  justify-content: center;
+  gap: 10px;
+}
+
 .b-exp, .b-del {
   padding: 10px 20px;
   border: 2px solid #b2cee7;
@@ -102,7 +114,7 @@ li {
   display: flex;
   justify-content: center;
 }
-#v-text {
+#v-create, #v-join {
   width: 250px;
   padding: 15px;
   border: 2px solid #ffffff;
@@ -110,7 +122,7 @@ li {
   cursor: pointer;
   transition: all 0.1s ease-in-out;
 }
-#v-text:hover {
+#v-create:hover, #v-join:hover {
   border: 2px solid #b2cee7;
   background-color: #b2cee7;
   color: #000000;

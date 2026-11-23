@@ -32,19 +32,21 @@
           <div id="vs-x" onclick="toggleTeamImporter()">✖</div>
         </div>
         <div id="vs-cont">
-          find team (placeholder)
         </div>
       </div>
       <div id="header">Teams</div>
       <div id="v">
-        <div id="v-text" onclick="toggleTeamImporter()">
-          <div id="v-name">Find Team</div>
-          <div id="v-time">not done</div>
-          <div id="v-id">yet (soon™)</div>
+        <div id="v-create" onclick="toggleTeamImporter('create')">
+          <div id="v-name">Create a Team</div>
+          <div id="v-time">press me!</div>
+          <div id="v-id">generates a team code</div>
+        </div>
+        <div id="v-join" onclick="toggleTeamImporter('join')">
+          <div id="v-name">Join a Team</div>
+          <div id="v-time">enter a code!</div>
+          <div id="v-id">to join your team</div>
         </div>
       </div>
-      <button id="team-add" onclick="createTeam()">Create a Team (placeholder)</button>
-      <input id="team-input"> Find a Team ID (placeholder)</input>
       <div id="team-list"></div>
     </div>
     </div>
