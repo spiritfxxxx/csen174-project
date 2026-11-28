@@ -69,7 +69,7 @@ function createTeam() {
   let char = "abcdefghijklmnopqrstuvwxyz1234567890";
   let team = document.getElementById("vs-team").value || "My Team";
   let teamID = "";
-  for (let i = 0; i < 6; ++i) id += char[Math.floor(Math.random() * char.length)];
+  for (let i = 0; i < 6; ++i) teamID += char[Math.floor(Math.random() * char.length)];
   if (!teamData.some(t => t.id == teamID)) { teamData.push({name: team, id: teamID, members: []}); }
   toggleTeamImporter();
   showTeams();
