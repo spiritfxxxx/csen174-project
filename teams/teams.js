@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------- MAIN PAGE ----------------------------------------------------------------------- */
 
-let menuBarIsOpen = teamImporterIsOpen = false;
+let menuBarIsOpen = teamImporterIsOpen = teamJoinerIsOpen = false;
 let currNumberFormat, leaksToggle = document.getElementById("lks"), spoilersToggle = document.getElementById("spl");
 let teamInput = document.getElementById("team-input");
 
@@ -22,45 +22,43 @@ function showTeams() {
   for (let t = 0; t < teamData.length; ++t) {
     let team = document.createElement("div");
     let teamName = document.createElement("div");
-    let teamDetails = document.createElement("div");
-    teamDetails.style.display = "none";
-    teamName.onclick = function() { teamDetails.style.display = teamDetails.style.display == "none" ? "block" : "none"; };
-    let teamText = document.createElement("div");
-    let teamAction = document.createElement("div");
-    let teamInvite = document.createElement("a");
-    teamInvite.innerHTML = "Invite Member";
-    let teamSchedule = document.createElement("a");
-    teamSchedule.className = "b-del";
-    teamSchedule.innerHTML = "Schedule Meeting";
-    teamSchedule.onclick = function() {window.location.href = "../meetings/"; };
-    let teamLeave = document.createElement("a");
-    teamLeave.innerHTML = "Leave Team";
-
+    let teamID = document.createElement("div");
+    let teamOptionToggle = document.createElement("div");
     team.className = "b";
     teamName.className = "b-name";
-    teamText.className = "b-text";
-    teamName.innerHTML = teamData[t].name + " (ID: " + teamData[t].id + ")";
-
-    teamAction.className = "b-actions";
-
-    teamInvite.className = "b-del";
-    teamInvite.onclick = function() { window.location.href = `mailto:?subject=Join my Timekeepers team&body=Hi! Join my team using this code: ${teamData[t].id}`; };
-
-    teamLeave.className = "b-del";
-    teamLeave.onclick = function() { leaveTeam(t); };
-
-    let memberInput = document.createElement("input");
-    let memberAdd = document.createElement("a");
-    memberInput.placeholder = "Add member name...";
-    memberAdd.className = "b-del";
-    memberAdd.innerHTML = "Add";
-
-    teamAction.appendChild(teamInvite);
-    teamAction.appendChild(teamSchedule);
-    teamAction.appendChild(teamLeave);
-    teamDetails.appendChild(teamAction);
+    teamID.className = "b-id";
+    teamOptionToggle.className = "b-opt-tgl";
+    teamName.innerHTML = teamData[t].name;
+    teamID.innerHTML = "Team ID: " + `<span style="font-weight:bold;text-decoration:underline;">${teamData[t].id}</span>`;
+    teamOptionToggle.innerHTML = "Team Options";
+    teamOptionToggle.onclick = function() {
+      let optionDisplayed = getComputedStyle(teamOption).display == "none";
+      teamOption.style.display = optionDisplayed ? "flex" : "none";
+      teamOptionToggle.style.color = optionDisplayed ? "#b2cee7" : "#ffffff";
+      teamOptionToggle.style.textDecoration = optionDisplayed ? "underline" : "none";
+    };
     team.appendChild(teamName);
-    team.appendChild(teamDetails);   
+    team.appendChild(teamID);
+    team.appendChild(teamOptionToggle);
+
+    let teamOption = document.createElement("div");
+    let teamInvite = document.createElement("a");
+    let teamSchedule = document.createElement("a");
+    let teamLeave = document.createElement("a");
+    teamOption.className = "b-opt";
+    teamInvite.className = "b-del";
+    teamSchedule.className = "b-del";
+    teamLeave.className = "b-del";
+    teamInvite.innerHTML = "Invite Member";
+    teamSchedule.innerHTML = "Schedule Meeting";
+    teamLeave.innerHTML = "Leave Team";
+    teamInvite.onclick = function() { window.location.href = `mailto:?subject=Timekeepers Team Invite&body=Hello! Please join my Timekeepers team with this ID: ${teamData[t].id} at https://spiritfxxxx.github.io/csen174-project/teams/`; };
+    teamSchedule.onclick = function() {window.location.href = "../meetings/"; };
+    teamLeave.onclick = function() { leaveTeam(t); };
+    teamOption.appendChild(teamInvite);
+    teamOption.appendChild(teamSchedule);
+    teamOption.appendChild(teamLeave);
+    team.appendChild(teamOption);
     teamList.appendChild(team);
   }
   saveState();
@@ -68,36 +66,31 @@ function showTeams() {
 
 // create team
 function createTeam() {
-  let name = document.getElementById("team-name")?.value.trim() || "My Team";
-  let id = "", char = "abcdefghijklmnopqrstuvwxyz1234567890";
+  let char = "abcdefghijklmnopqrstuvwxyz1234567890";
+  let team = document.getElementById("vs-team").value || "My Team";
+  let teamID = "";
   for (let i = 0; i < 6; ++i) id += char[Math.floor(Math.random() * char.length)];
-  if (!teamData.some( t => t.id == id )) { teamData.push({ id: id, name: name, members: [] }); }
+  if (!teamData.some(t => t.id == teamID)) { teamData.push({name: team, id: teamID, members: []}); }
   toggleTeamImporter();
   showTeams();
 }
+document.getElementById("vs-team").addEventListener("keydown", (e) => { if (e.key == "Enter") createTeam(); });
+
+// join team
+function joinTeam() {
+  let team = document.getElementById("vs-code");
+  let teamID = team.value;
+  if (teamID.length != 6) return;
+  if (teamData.some(t => t.id == teamID)) { team.value = "Already in this team!"; return; }
+  teamData.push({name: "My Team", id: teamID, members: []});
+  toggleTeamJoiner();
+  showTeams();
+}
+document.getElementById("vs-code").addEventListener("keydown", (e) => { if (e.key == "Enter") joinTeam(); });
 
 // leave team
 function leaveTeam(t) {
   teamData.splice(t, 1);
-  showTeams();
-}
-
-/*
-// find team
-function findTeam() {
-  teamInput.value = teamData.includes(teamInput.value) ? "found!" : "nope! not found.";
-}
-teamInput.addEventListener("change", () => { findTeam(); });
-*/
-
-// join team
-function joinTeam() {
-  let teamInput = document.getElementById("team-input")
-  let id = teamInput.value.trim();
-  if (teamData.some( t => t.id == id)) { teamInput.value = "already in this team!"; return; }
-  teamData.push({ id: id, name: "Team",members: [] }); 
-  teamInput.value = "team joined!";
-  toggleTeamImporter();
   showTeams();
 }
 
@@ -131,9 +124,7 @@ function jumpToBottom(e) {
 document.addEventListener("keydown", (e) => {
   e.stopPropagation();
   if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
-  if (e.key == "Escape") { e.preventDefault(); teamImporterIsOpen ? toggleTeamImporter() : toggleMenuBar(); }
-  else if (e.key == " " && !menuBarIsOpen && document.activeElement != teamInput) { e.preventDefault(); toggleTeamImporter(); }
-  else if (e.key == "Enter" && !menuBarIsOpen && !teamImporterIsOpen && document.activeElement != teamInput) { e.preventDefault(); jumpToTop(); }
+  if (e.key == "Escape") { e.preventDefault(); teamImporterIsOpen ? toggleTeamImporter() : teamJoinerIsOpen ? toggleTeamJoiner() : toggleMenuBar(); }
 });
 
 /* ------------------------------------------------------------------------ MENU BAR ------------------------------------------------------------------------ */
@@ -167,20 +158,19 @@ function changeNumberFormat(e) {
 /* ------------------------------------------------------------------- team IMPORTER ------------------------------------------------------------------- */
 
 // display team importer
-function toggleTeamImporter(mode) {
+function toggleTeamImporter() {
   teamImporterIsOpen = !teamImporterIsOpen;
-  let teamImporter = document.getElementById("vs");
-  let teamImporterOverlay = document.getElementById("vs-over");
-  let vsCont = document.getElementById("vs-cont");
+  let teamImporter = document.getElementById("vs-create");
+  let teamImporterOverlay = document.getElementById("vs-over1");
   document.body.style.overflow = teamImporterIsOpen ? "hidden" : "auto";
   teamImporter.style.display = teamImporterOverlay.style.display = teamImporterIsOpen ? "flex" : "none";
+}
 
-  if (mode == "create") {
-    vsCont.innerHTML = `<div>Team Name (optional)</div><input id="team-name" placeholder="My Team"><button onclick="createTeam()">Create</button>`;
-  } else if (mode == "join") {
-    vsCont.innerHTML = `<div>Enter Team Code</div><input id="team-input" placeholder="e.g. a43bds"><button onclick="joinTeam()">Join</button>`;
-  }
-
-  document.getElementById("team-name")?.addEventListener("keydown", (e) => { if (e.key == "Enter") createTeam(); });
-  document.getElementById("team-input")?.addEventListener("keydown", (e) => { if (e.key == "Enter") joinTeam(); });
+// display team joiner
+function toggleTeamJoiner() {
+  teamJoinerIsOpen = !teamJoinerIsOpen;
+  let teamJoiner = document.getElementById("vs-join");
+  let teamJoinerOverlay = document.getElementById("vs-over2");
+  document.body.style.overflow = teamJoinerIsOpen ? "hidden" : "auto";
+  teamJoiner.style.display = teamJoinerOverlay.style.display = teamJoinerIsOpen ? "flex" : "none";
 }

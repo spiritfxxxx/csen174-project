@@ -3,25 +3,41 @@
 }
 
 .b {
+  min-height: 200px !important;
   position: relative;
 }
 
-.b-name {
+.b-id {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  margin: 15px;
+  color: #bbbbbb;
+  font-size: 14px;
+}
+
+.b-det {
+  display: block;
+}
+
+.b-opt-tgl {
+  position: absolute;
+  top: 30px;
+  right: 0px;
+  margin: 15px;
+}
+.b-opt-tgl:hover {
   cursor: pointer;
-  padding: 10px;
-  border-radius: 4px;
-  background-color: #1a2a33;
+  color: #b2cee7;
 }
 
-.b-name:horver {
-  background-color: #2a3f4a;
-}
-
-.b-actions {
-  display: flex;
+.b-opt {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  margin: 15px;
+  display: none;
   flex-direction: row;
-  position: static;
-  margin: 10px 0px;
   justify-content: center;
   gap: 10px;
 }
@@ -40,6 +56,41 @@
 .b-exp:hover, .b-del:hover {
   color: #000000;
   background-color: #b2cee7;
+}
+
+#vs-over1, #vs-over2 {
+  z-index: 2000;
+  top: 0px;
+  left: 0px;
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000000;
+  opacity: 0.5;
+  display: none;
+}
+
+#vs-create, #vs-join {
+  z-index: 2001;
+  inset: 5vh 2.5vw 5vh calc(2.5vw + 47.5px);
+  position: fixed;
+  border-radius: 4px;
+  background-color: #222222;
+  user-select: none;
+  display: none;
+  flex-direction: column;
+}
+
+#vs-cont {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#vs-text {
+  font-size: 36px;
 }
 
 /* Z-INDEX TRACKER:

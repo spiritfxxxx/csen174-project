@@ -426,7 +426,6 @@ document.addEventListener("keydown", (e) => {
   if (e.key == "Escape") { e.preventDefault(); scheduleImporterIsOpen ? toggleScheduleImporter() : toggleMenuBar(); }
   else if (e.target.matches?.("input, textarea, select")) return;
   else if (e.key == " " && !menuBarIsOpen) { e.preventDefault(); toggleScheduleImporter(); }
-  else if (e.key == "Enter" && !menuBarIsOpen && !scheduleImporterIsOpen) { e.preventDefault(); jumpToTop("body"); }
 });
 
 /* ------------------------------------------------------------------------ MENU BAR ------------------------------------------------------------------------ */
