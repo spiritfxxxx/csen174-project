@@ -2,9 +2,9 @@
 
 let menuBarIsOpen = teamImporterIsOpen = teamJoinerIsOpen = false;
 let currNumberFormat, leaksToggle = document.getElementById("lks"), spoilersToggle = document.getElementById("spl");
-let teamInput = document.getElementById("team-input");
+let teamInputName = document.getElementById("vs-team"), teamInputID = document.getElementById("vs-code");
 
-let teamData = [];
+let teamCnt, teamData = [];
 
 // display main page
 function loadPage() {
@@ -52,7 +52,7 @@ function showTeams() {
     teamInvite.innerHTML = "Invite Member";
     teamSchedule.innerHTML = "Schedule Meeting";
     teamLeave.innerHTML = "Leave Team";
-    teamInvite.onclick = function() { window.location.href = `mailto:?subject=Timekeepers Team Invite&body=Hello! Please join my Timekeepers team with this ID: ${teamData[t].id} at https://spiritfxxxx.github.io/csen174-project/teams/`; };
+    teamInvite.onclick = function() { window.location.href = `mailto:?subject=Timekeepers Team Invite&body=Hello! Please join my Timekeepers team with this ID: ${teamData[t].id} at https://spiritfxxxx.github.io/csen174-project/teams/.`; };
     teamSchedule.onclick = function() {window.location.href = "../meetings/"; };
     teamLeave.onclick = function() { leaveTeam(t); };
     teamOption.appendChild(teamInvite);
@@ -60,6 +60,23 @@ function showTeams() {
     teamOption.appendChild(teamLeave);
     team.appendChild(teamOption);
     teamList.appendChild(team);
+
+    let memberList = document.createElement("div");
+    memberList.className = "member-list";
+    for (let i = 0; i < teamData[t].members.length; i++) {
+      let member =  document.createElement("div");
+      let memberImg =  document.createElement("img");
+      let memberName =  document.createElement("div");
+      member.className = "member";
+      memberImg.className = "member-img";
+      memberName.className = "member-name";
+      memberImg.src = "../assets/misc/member.webp";
+      memberName.innerHTML = teamData[t].members[i].first + `<br>` + teamData[t].members[i].last;
+      member.appendChild(memberImg);
+      member.appendChild(memberName);
+      memberList.appendChild(member);
+    }
+    team.appendChild(memberList);
   }
   saveState();
 }
@@ -70,7 +87,8 @@ function createTeam() {
   let team = document.getElementById("vs-team").value || "My Team";
   let teamID = "";
   for (let i = 0; i < 6; ++i) teamID += char[Math.floor(Math.random() * char.length)];
-  if (!teamData.some(t => t.id == teamID)) { teamData.push({name: team, id: teamID, members: []}); }
+  if (!teamData.some(t => t.id == teamID)) { teamData.push({name: team, id: teamID, members: createTeamMembers()}); }
+  else createTeam();
   toggleTeamImporter();
   showTeams();
 }
@@ -82,7 +100,7 @@ function joinTeam() {
   let teamID = team.value;
   if (teamID.length != 6) return;
   if (teamData.some(t => t.id == teamID)) { team.value = "Already in this team!"; return; }
-  teamData.push({name: "My Team", id: teamID, members: []});
+  teamData.push({name: "My Team", id: teamID, members: createTeamMembers()});
   toggleTeamJoiner();
   showTeams();
 }
@@ -92,6 +110,43 @@ document.getElementById("vs-code").addEventListener("keydown", (e) => { if (e.ke
 function leaveTeam(t) {
   teamData.splice(t, 1);
   showTeams();
+}
+
+/* ----------------------------------------------------------------------- */
+
+// list of first/last names
+let firstNames = [
+  "Aaliyah", "Aarav", "Adrian", "Aisha", "Alejandro", "Amara", "Andrew", "Anh", "Anika", "Ariana",
+  "Benjamin", "Camila", "Carlos", "Claire", "Daniel", "David", "Diego", "Elena", "Emily", "Ethan",
+  "Fatima", "Gabriel", "Grace", "Hana", "Hannah", "Isaac", "Isabella", "Jasmine", "Javier", "Jin",
+  "Jun", "Kai", "Kavya", "Layla", "Leo", "Liam", "Lucia", "Marcus", "Maya", "Mei",
+  "Mia", "Miguel", "Nadia", "Naveen", "Nicole", "Noah", "Olivia", "Omar", "Priya", "Rafael",
+  "Rohan", "Samantha", "Sofia", "Sophie", "Sora", "Tariq", "Thomas", "Tyler", "Valentina", "Victoria",
+  "Wei", "Yara", "Zara", "Zoe"
+];
+let lastNames = [
+  "Ahmed", "Alvarez", "Anderson", "Bailey", "Bennett", "Brooks", "Campbell", "Chen", "Choi", "Clark",
+  "Cohen", "Cruz", "Dang", "Davis", "Diaz", "Edwards", "Flores", "Garcia", "Gonzalez", "Gupta",
+  "Hall", "Hernandez", "Huang", "Hughes", "Ibrahim", "Johnson", "Kang", "Kim", "Kumar", "Lee",
+  "Lopez", "Martinez", "Miller", "Mitchell", "Morales", "Murphy", "Nguyen", "Ortiz", "Park", "Patel",
+  "Perez", "Pham", "Ramirez", "Reyes", "Rivera", "Robinson", "Rodriguez", "Santos", "Sato", "Shah",
+  "Silva", "Singh", "Smith", "Tanaka", "Taylor", "Torres", "Tran", "Wang", "Wilson", "Wong",
+  "Wright", "Yamamoto", "Young", "Zhang"
+];
+
+// pick a random item from a list
+function randomItem(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+// create 1-5 unique team members, with random names
+function createTeamMembers() {
+  let members = [];
+  for (let i = 0; i < 1 + Math.floor(Math.random() * 5); ++i) {
+    let member = {first: randomItem(firstNames), last: randomItem(lastNames)};
+    if (!members.some(m => m.first == member.first || m.last == member.last)) members.push(member);
+  }
+  return members;
 }
 
 /* ----------------------------------------------------------------------- QOL & NAV ----------------------------------------------------------------------- */
@@ -164,6 +219,7 @@ function toggleTeamImporter() {
   let teamImporterOverlay = document.getElementById("vs-over1");
   document.body.style.overflow = teamImporterIsOpen ? "hidden" : "auto";
   teamImporter.style.display = teamImporterOverlay.style.display = teamImporterIsOpen ? "flex" : "none";
+  teamInputName.value = "";
 }
 
 // display team joiner
@@ -173,4 +229,5 @@ function toggleTeamJoiner() {
   let teamJoinerOverlay = document.getElementById("vs-over2");
   document.body.style.overflow = teamJoinerIsOpen ? "hidden" : "auto";
   teamJoiner.style.display = teamJoinerOverlay.style.display = teamJoinerIsOpen ? "flex" : "none";
+  teamInputID.value = "";
 }

@@ -2,6 +2,30 @@
   margin-top: 30px;
 }
 
+.member-list {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+}
+
+.member {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-img {
+  width: 80px;
+}
+
+.member-name {
+  margin-top: 7.5px;
+  display: flex;
+  justify-content: center;
+  width: 80px;
+  text-align: center;
+}
+
 .b {
   min-height: 200px !important;
   position: relative;
